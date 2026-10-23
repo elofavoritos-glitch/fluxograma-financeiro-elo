@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard — Fluxos Financeiros ELO</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --sidebar: #111c33;
+    --card: #ffffff;
+    --accent: #10b981;
+    --accent-2: #2563eb;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: #1e293b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+  }
+  /* Sidebar */
+  aside {
+    width: 280px;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+  }
+  .brand {
+    padding: 0 24px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .brand h1 { font-size: 18px; color: #fff; letter-spacing: .5px; }
+  .brand span { font-size: 12px; color: var(--muted); }
+  nav button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: all .15s;
+  }
+  nav button:hover { background: rgba(255,255,255,.04); color: #fff; }
+  nav button.active {
+    color: #fff;
+    background: rgba(16,185,129,.1);
+    border-left-color: var(--accent);
+  }
+  .tag {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+  }
+  .tag.cr { background: #064e3b; color: #6ee7b7; }
+  .tag.cp { background: #1e3a8a; color: #93c5fd; }
+  .tag.fiscal { background: #78350f; color: #fcd34d; }
+  /* Main */
+  main { flex: 1; padding: 32px 40px; overflow-x: auto; }
+  .topbar {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .topbar h2 { font-size: 24px; color: #fff; }
+  .topbar .badge {
+    font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 12px;
+  }
+  .desc { color: var(--muted); margin-bottom: 24px; max-width: 760px; line-height: 1.5; }
+  .diagram-card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    overflow-x: auto;
+  }
+  .mermaid { display: flex; justify-content: center; }
+  footer {
+    margin-top: 28px; color: var(--muted); font-size: 12px; line-height: 1.6;
+  }
+  footer a { color: var(--accent); }
+  /* Legenda / cards resumo */
+  .legend { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+  .legend .chip {
+    font-size: 12px; padding: 6px 12px; border-radius: 20px;
+    background: var(--border); color: var(--text);
+  }
+  .hidden { display: none; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <aside>
+    <div class="brand">
+      <h1>⚙️ Fluxos Financeiros</h1>
+      <span>ELO · CR / CP / Fiscal</span>
+    </div>
+    <nav id="nav"></nav>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <h2 id="title"></h2>
+      <span id="badge" class="badge"></span>
+    </div>
+    <p class="desc" id="desc"></p>
+    <div class="legend">
+      <span class="chip">CR = Contas a Receber</span>
+      <span class="chip">CP = Contas a Pagar</span>
+      <span class="chip">RPA = Recibo de Pagamento a Autônomo</span>
+      <span class="chip">CTE = Conhecimento de Transporte Eletrônico</span>
+    </div>
+    <div class="diagram-card">
+      <pre class="mermaid" id="diagram"></pre>
+    </div>
+    <footer>
+      Interpretação a partir de fotos de quadro branco — campos sujeitos a ajuste.
+      Diagramas renderizados com <a href="https://mermaid.js.org/" target="_blank">Mermaid</a>.
+    </footer>
+  </main>
+
+<script>
+const flows = [
+  {
+    id: "visao-geral", title: "Visão geral", area: "", tag: "",
+    desc: "Ponto de entrada único que roteia as solicitações entre as áreas Contas a Receber, Contas a Pagar e Fiscal.",
+    code: `flowchart LR
+    START((Solicitação)) --> ROUTER{Área}
+    ROUTER -->|CR| CR[Contas a Receber]
+    ROUTER -->|CP| CP[Contas a Pagar]
+    ROUTER -->|Fiscal| FISCAL[Fiscal]
+    CR --> ALT[Alteração Vencimento / Prazo]
+    CR --> DESC[Desconto / Crédito]
+    CR --> REEMB[Reembolso Viagem]
+    CR --> CANC[Cancelamento RPA]
+    CP --> SOLIC[Solicitação Pagamento Complementar]
+    FISCAL --> NF["Envio NF (em desenvolvimento)"]
+    classDef dev fill:#fff3cd,stroke:#d39e00;
+    class NF dev;`
+  },
+  {
+    id: "alteracao", title: "Alteração de Vencimento / Prazo", area: "CR", tag: "cr",
+    desc: "Alteração da data de vencimento ou do prazo de um título de Contas a Receber, com dupla aprovação.",
+    code: `flowchart TD
+    START((Início)) --> TIPO[Alteração Vencimento / Prazo]
+    TIPO --> FORM[Formulário]
+    FORM --> F1[Título]
+    FORM --> F2[Cód. Cliente]
+    FORM --> F3[Motivo]
+    FORM --> F4[Justificativa]
+    FORM --> F5[Regional]
+    F1 & F2 & F3 & F4 & F5 --> APROV1{Aprovação Gestor / Região}
+    APROV1 -->|Aprovado| APROV2{Aprovação Financeiro}
+    APROV1 -->|Reprovado| FIM_REP((Reprovado))
+    APROV2 -->|Aprovado| USER[Usuário executa alteração]
+    APROV2 -->|Reprovado| FIM_REP
+    USER --> FIM((Concluído))`
+  },
+  {
+    id: "desconto", title: "Desconto / Crédito", area: "CR", tag: "cr",
+    desc: "Concessão de desconto ou geração de crédito sobre títulos de Contas a Receber, com ramo de valor/percentual e dupla aprovação.",
+    code: `flowchart TD
+    START((Início)) --> RAMO{Tipo}
+    RAMO -->|Alteração Vencimento| ALT[Alteração Vencimento]
+    RAMO -->|Desconto / Cálculo| DESC[Desconto]
+    RAMO -->|Crédito| CRED[Crédito]
+    DESC --> FORM[Formulário]
+    CRED --> FORM
+    FORM --> F1[Título]
+    FORM --> F2[Cód. Cliente]
+    FORM --> F3[Motivo]
+    FORM --> F4[Justificativa]
+    FORM --> VAL{Valor do desconto}
+    VAL -->|ou| V1[Valor Desc.]
+    VAL -->|ou| V2["% Desc."]
+    FORM --> F5[Valor Original]
+    FORM --> F6[Regional]
+    F1 & F2 & F3 & F4 & V1 & V2 & F5 & F6 --> APROV1{Aprovação Gestor / Região}
+    APROV1 -->|Aprovado| APROV2{Aprovação Financeiro}
+    APROV1 -->|Reprovado| FIM_REP((Reprovado))
+    APROV2 -->|Aprovado| USER[Usuário gera desconto/crédito]
+    APROV2 -->|Reprovado| FIM_REP
+    USER --> FIM((Concluído))`
+  },
+  {
+    id: "reembolso", title: "Reembolso Viagem", area: "CR", tag: "cr",
+    desc: "Solicitação de reembolso de despesas de viagem. Compartilha o formulário com Solicitação de Pagamento e Cancelamento RPA.",
+    code: `flowchart TD
+    START((Início)) --> RAMO{Tipo de solicitação}
+    RAMO -->|Reembolso| REEMB[Reembolso Viagem]
+    RAMO -->|Solicitação Pagto| SOLIC[Solicitação Pagamento]
+    RAMO -->|Cancelamento RPA| CANC[Cancelamento RPA]
+    REEMB --> FORM[Formulário]
+    SOLIC --> FORM
+    CANC --> FORM
+    FORM --> F1[Cód. Fornecedor]
+    FORM --> F2["Tipo (seleção)"]
+    FORM --> F3["Motivo (seleção)"]
+    FORM --> F4[Descrição]
+    FORM --> F5[Ficha Viagem]
+    FORM --> F6[CTE]
+    FORM --> F7[Região]
+    FORM --> F8[Dados Pagamento]
+    F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 --> APROV{Aprovação Gestor}
+    APROV -->|Aprovado| USER[Usuário]
+    APROV -->|Reprovado| FIM_REP((Reprovado))
+    USER --> FIM((Concluído))`
+  },
+  {
+    id: "solicitacao", title: "Solicitação de Pagamento Complementar", area: "CP", tag: "cp",
+    desc: "Solicitação de pagamento complementar (Contas a Pagar). Usa o mesmo formulário de Reembolso e Cancelamento RPA.",
+    code: `flowchart TD
+    START((Início)) --> SOLIC[Solicitação Pagamento Complementar]
+    SOLIC --> FORM[Formulário]
+    FORM --> F1[Cód. Fornecedor]
+    FORM --> F2["Tipo (seleção)"]
+    FORM --> F3["Motivo (seleção)"]
+    FORM --> F4[Descrição]
+    FORM --> F5[Ficha Viagem]
+    FORM --> F6[CTE]
+    FORM --> F7[Região]
+    FORM --> F8[Dados Pagamento]
+    F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 --> APROV{Aprovação Gestor}
+    APROV -->|Aprovado| USER[Usuário]
+    APROV -->|Reprovado| FIM_REP((Reprovado))
+    USER --> FIM((Concluído))`
+  },
+  {
+    id: "cancelamento", title: "Cancelamento RPA", area: "CR", tag: "cr",
+    desc: "Cancelamento de Recibo de Pagamento a Autônomo. Compartilha formulário e trilha de aprovação com Reembolso e Solicitação de Pagamento.",
+    code: `flowchart TD
+    START((Início)) --> CANC[Cancelamento RPA]
+    CANC --> FORM[Formulário]
+    FORM --> F1[Cód. Fornecedor]
+    FORM --> F2["Tipo (seleção)"]
+    FORM --> F3["Motivo (seleção)"]
+    FORM --> F4[Descrição]
+    FORM --> F5[Ficha Viagem]
+    FORM --> F6[CTE]
+    FORM --> F7[Região]
+    FORM --> F8[Dados Pagamento]
+    F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 --> APROV{Aprovação Gestor}
+    APROV -->|Aprovado| USER[Usuário]
+    APROV -->|Reprovado| FIM_REP((Reprovado))
+    USER --> FIM((Concluído))`
+  },
+  {
+    id: "envio-nf", title: "Envio NF", area: "Fiscal", tag: "fiscal",
+    desc: "Envio de Nota Fiscal pela área Fiscal. Fluxo ainda em desenvolvimento — mapeamento preliminar.",
+    code: `flowchart TD
+    START((Início)) --> ROUTER{Área}
+    ROUTER -->|CR| CR[Contas a Receber]
+    ROUTER -->|CP| CP[Contas a Pagar]
+    ROUTER -->|Fiscal| FISCAL[Fiscal]
+    FISCAL --> NF["Envio NF (em desenvolvimento)"]
+    classDef dev fill:#fff3cd,stroke:#d39e00;
+    class NF dev;`
+  }
+];
+
+mermaid.initialize({ startOnLoad: false, theme: "default", flowchart: { useMaxWidth: true } });
+
+const nav = document.getElementById("nav");
+const titleEl = document.getElementById("title");
+const badgeEl = document.getElementById("badge");
+const descEl = document.getElementById("desc");
+const diagramEl = document.getElementById("diagram");
+
+const tagColor = { cr: "#064e3b", cp: "#1e3a8a", fiscal: "#78350f" };
+const tagText = { cr: "#6ee7b7", cp: "#93c5fd", fiscal: "#fcd34d" };
+
+flows.forEach((f, i) => {
+  const btn = document.createElement("button");
+  btn.innerHTML = `<span>${f.title}</span>` +
+    (f.tag ? `<span class="tag ${f.tag}">${f.area}</span>` : "");
+  btn.onclick = () => select(i);
+  btn.dataset.idx = i;
+  nav.appendChild(btn);
+});
+
+let counter = 0;
+async function select(i) {
+  const f = flows[i];
+  document.querySelectorAll("#nav button").forEach(b =>
+    b.classList.toggle("active", +b.dataset.idx === i));
+  titleEl.textContent = f.title;
+  descEl.textContent = f.desc;
+  if (f.tag) {
+    badgeEl.textContent = f.area;
+    badgeEl.style.background = tagColor[f.tag];
+    badgeEl.style.color = tagText[f.tag];
+    badgeEl.classList.remove("hidden");
+  } else {
+    badgeEl.classList.add("hidden");
+  }
+  const id = "mmd-" + (counter++);
+  try {
+    const { svg } = await mermaid.render(id, f.code);
+    diagramEl.innerHTML = svg;
+  } catch (e) {
+    diagramEl.textContent = "Erro ao renderizar: " + e.message;
+  }
+}
+select(0);
+</script>
+</body>
+</html>
