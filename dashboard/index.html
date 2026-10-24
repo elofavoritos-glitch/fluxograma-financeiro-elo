@@ -440,7 +440,7 @@ viewport.addEventListener("wheel",e=>{
 
 /* fullscreen & export */
 function toggleFs(){const el=document.getElementById("card");if(!document.fullscreenElement)el.requestFullscreen?.();else document.exitFullscreen();}
-setTimeout(()=>document.addEventListener("fullscreenchange",()=>setTimeout(fitToView,80)),0);
+setTimeout(()=>document.addEventListener("fullscreenchange",()=>setTimeout(resetView,80)),0);
 function downloadSvg(){const svg=canvas.querySelector("svg");if(!svg)return;
   const s=new XMLSerializer().serializeToString(svg);const b=new Blob([s],{type:"image/svg+xml"});
   const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=flows[current].id+".svg";a.click();}
@@ -481,7 +481,7 @@ async function select(i){current=i;const f=flows[i];
     resetView();
   }catch(e){diagramEl.textContent="Erro: "+e.message;}}
 window.zoomBy=zoomBy;window.resetView=resetView;window.toggleFs=toggleFs;window.downloadSvg=downloadSvg;window.downloadPng=downloadPng;window.hideDetail=hideDetail;window.showWhole=showWhole;
-window.addEventListener("resize",()=>setTimeout(fitToView,60));
+window.addEventListener("resize",()=>setTimeout(resetView,60));
 
 /* inicializa só depois que o Mermaid carregar (com fallback) */
 loadMermaid(0).then(()=>{
