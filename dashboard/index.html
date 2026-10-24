@@ -219,11 +219,14 @@ const nodeInfo = {
 };
 
 /* ---------- fluxos ---------- */
+const F_CR = (extra) => `["<b>Formulário</b><br/>Título · Cód. Cliente<br/>Motivo · Justificativa${extra||""}<br/>Regional"]`;
+const F_PG = `["<b>Formulário</b><br/>Cód. Fornecedor · Tipo · Motivo<br/>Descrição · Ficha Viagem · CTE<br/>Região · Dados Pagamento"]`;
+
 const flows=[
  {id:"todos",title:"Visão consolidada",crumb:"Visão consolidada",area:"ALL",tag:"all",dot:"#94a3b8",
-  desc:"O processo inteiro num só mapa — da solicitação ao roteamento por área, passando por formulários, alçadas de aprovação e execução.",
+  desc:"O processo inteiro num só mapa: da solicitação ao roteamento por área, passando por formulários, alçadas de aprovação e execução.",
   stats:[["Áreas","3"],["Processos","6"],["Alçadas","até 2"]],
-  code:`flowchart LR
+  code:`flowchart TD
     START((Solicitação)):::start --> ROUTER{Área}:::gate
     ROUTER -->|CR| CR[Contas a Receber]:::area
     ROUTER -->|CP| CP[Contas a Pagar]:::area
@@ -232,21 +235,21 @@ const flows=[
     CR --> DESC[Desconto / Crédito]:::proc
     CR --> REEMB[Reembolso Viagem]:::proc
     CR --> CANC[Cancelamento RPA]:::proc
-    ALT --> FA[Formulário CR]:::form
-    DESC --> FA
-    FA --> AP1{Aprovação Gestor / Região}:::gate
-    AP1 -->|Aprovado| AP2{Aprovação Financeiro}:::gate
-    AP1 -->|Reprovado| REP((Reprovado)):::bad
-    AP2 -->|Aprovado| USR1[Usuário executa]:::ok
-    AP2 -->|Reprovado| REP
-    REEMB --> FR[Formulário Pagamento]:::form
-    CANC --> FR
     CP --> SOLIC[Solicitação Pagto Complementar]:::proc
+    FISCAL --> NF[Envio NF<br/>em desenvolvimento]:::dev
+    ALT --> FA["<b>Formulário CR</b><br/>Título · Cliente · Motivo<br/>Justificativa · Regional"]:::form
+    DESC --> FA
+    REEMB --> FR["<b>Formulário Pagamento</b><br/>Fornecedor · Tipo · Motivo<br/>Ficha Viagem · CTE · Região"]:::form
+    CANC --> FR
     SOLIC --> FR
-    FR --> AG{Aprovação Gestor}:::gate
+    FA --> AP1{Aprovação<br/>Gestor / Região}:::gate
+    AP1 -->|Aprovado| AP2{Aprovação<br/>Financeiro}:::gate
+    AP2 -->|Aprovado| USR1[Usuário executa]:::ok
+    FR --> AG{Aprovação<br/>Gestor}:::gate
     AG -->|Aprovado| USR2[Usuário executa]:::ok
+    AP1 -->|Reprovado| REP((Reprovado)):::bad
+    AP2 -->|Reprovado| REP
     AG -->|Reprovado| REP
-    FISCAL --> NF[Envio NF em desenvolvimento]:::dev
     ${CLASS_DEFS}`},
 
  {id:"visao-geral",title:"Visão geral",crumb:"Visão geral",area:"",tag:"",dot:"#94a3b8",
@@ -270,70 +273,48 @@ const flows=[
   stats:[["Campos","5"],["Alçadas","2"]],
   code:`flowchart TD
     START((Início)):::start --> TIPO[Alteração Venc./Prazo]:::proc
-    TIPO --> FORM[Formulário]:::form
-    FORM --> F1[Título]:::field
-    FORM --> F2[Cód. Cliente]:::field
-    FORM --> F3[Motivo]:::field
-    FORM --> F4[Justificativa]:::field
-    FORM --> F5[Regional]:::field
-    F1 & F2 & F3 & F4 & F5 --> AP1{Aprovação Gestor / Região}:::gate
-    AP1 -->|Aprovado| AP2{Aprovação Financeiro}:::gate
+    TIPO --> FORM${F_CR()}:::form
+    FORM --> AP1{Aprovação<br/>Gestor / Região}:::gate
+    AP1 -->|Aprovado| AP2{Aprovação<br/>Financeiro}:::gate
     AP1 -->|Reprovado| REP((Reprovado)):::bad
-    AP2 -->|Aprovado| USR[Usuário executa]:::ok
+    AP2 -->|Aprovado| USR[Usuário executa alteração]:::ok
     AP2 -->|Reprovado| REP
     USR --> FIM((Concluído)):::ok
     ${CLASS_DEFS}`},
 
  {id:"desconto",title:"Desconto / Crédito",crumb:"Desconto / Crédito",area:"CR",tag:"cr",dot:"#0ea371",warn:true,
-  desc:"Concessão de desconto ou geração de crédito, com escolha entre valor fixo ou percentual e dupla aprovação.",
+  desc:"Concessão de desconto ou geração de crédito, com escolha entre valor em R$ ou percentual e dupla aprovação.",
   stats:[["Campos","8"],["Alçadas","2"]],
   code:`flowchart TD
     START((Início)):::start --> RAMO{Tipo}:::gate
     RAMO -->|Desconto| DESC[Desconto]:::proc
     RAMO -->|Crédito| CRED[Crédito]:::proc
-    DESC --> FORM[Formulário]:::form
+    DESC --> FORM${F_CR("<br/>Valor Desc. (R$) <b>ou</b> % Desc.<br/>Valor Original")}:::form
     CRED --> FORM
-    FORM --> F1[Título]:::field
-    FORM --> F2[Cód. Cliente]:::field
-    FORM --> F3[Motivo]:::field
-    FORM --> F4[Justificativa]:::field
-    FORM --> VAL{Valor do desconto}:::gate
-    VAL -->|R$| V1[Valor Desc.]:::field
-    VAL -->|%| V2[Percentual]:::field
-    FORM --> F5[Valor Original]:::field
-    FORM --> F6[Regional]:::field
-    F1 & F2 & F3 & F4 & V1 & V2 & F5 & F6 --> AP1{Aprovação Gestor / Região}:::gate
-    AP1 -->|Aprovado| AP2{Aprovação Financeiro}:::gate
+    FORM --> AP1{Aprovação<br/>Gestor / Região}:::gate
+    AP1 -->|Aprovado| AP2{Aprovação<br/>Financeiro}:::gate
     AP1 -->|Reprovado| REP((Reprovado)):::bad
     AP2 -->|Aprovado| USR[Usuário gera desconto]:::ok
     AP2 -->|Reprovado| REP
     USR --> FIM((Concluído)):::ok
-    FORM -.-> ITEM["Item / Título + Ano Fiscal (a confirmar)"]:::warn
-    ITEM -.-> AX1["Aprovação 1 (a confirmar)"]:::warn
-    AX1 -.-> AX2["Aprovação 2 (a confirmar)"]:::warn
+    FORM -.->|variação?| ITEM["Item / Título + Ano Fiscal<br/>(a confirmar)"]:::warn
+    ITEM -.-> AX1["Aprovação 1<br/>(a confirmar)"]:::warn
+    AX1 -.-> AX2["Aprovação 2<br/>(a confirmar)"]:::warn
     ${CLASS_DEFS}`},
 
  {id:"reembolso",title:"Reembolso Viagem",crumb:"Reembolso Viagem",area:"CR",tag:"cr",dot:"#0ea371",warn:true,
   desc:"Reembolso de despesas de viagem. Compartilha o formulário com Solicitação de Pagamento e Cancelamento RPA.",
   stats:[["Campos","8"],["Alçadas","1"]],
   code:`flowchart TD
-    START((Início)):::start --> RAMO{Tipo de solicitação}:::gate
+    START((Início)):::start --> RAMO{Tipo de<br/>solicitação}:::gate
     RAMO -->|Reembolso| REEMB[Reembolso Viagem]:::proc
     RAMO -->|Solicitação Pagto| SOLIC[Solicitação Pagamento]:::proc
     RAMO -->|Cancelamento RPA| CANC[Cancelamento RPA]:::proc
-    REEMB --> FORM[Formulário]:::form
+    REEMB --> FORM${F_PG}:::form
     SOLIC --> FORM
     CANC --> FORM
-    FORM --> F1[Cód. Fornecedor]:::field
-    FORM --> F2[Tipo]:::field
-    FORM --> F3[Motivo]:::field
-    FORM --> F4[Descrição]:::field
-    FORM --> F5[Ficha Viagem]:::field
-    FORM --> F6[CTE]:::field
-    FORM --> F7[Região]:::field
-    FORM --> F8[Dados Pagamento]:::field
-    F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 --> AG{Aprovação Gestor}:::gate
-    AG -->|Aprovado| VAL["Validação (a confirmar)"]:::warn
+    FORM --> AG{Aprovação<br/>Gestor}:::gate
+    AG -->|Aprovado| VAL["Validação<br/>(a confirmar)"]:::warn
     AG -->|Reprovado| REP((Reprovado)):::bad
     VAL --> USR[Usuário]:::ok
     USR --> FIM((Concluído)):::ok
@@ -344,16 +325,8 @@ const flows=[
   stats:[["Campos","8"],["Alçadas","1"]],
   code:`flowchart TD
     START((Início)):::start --> SOLIC[Solicitação Pagto Complementar]:::proc
-    SOLIC --> FORM[Formulário]:::form
-    FORM --> F1[Cód. Fornecedor]:::field
-    FORM --> F2[Tipo]:::field
-    FORM --> F3[Motivo]:::field
-    FORM --> F4[Descrição]:::field
-    FORM --> F5[Ficha Viagem]:::field
-    FORM --> F6[CTE]:::field
-    FORM --> F7[Região]:::field
-    FORM --> F8[Dados Pagamento]:::field
-    F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 --> AG{Aprovação Gestor}:::gate
+    SOLIC --> FORM${F_PG}:::form
+    FORM --> AG{Aprovação<br/>Gestor}:::gate
     AG -->|Aprovado| USR[Usuário]:::ok
     AG -->|Reprovado| REP((Reprovado)):::bad
     USR --> FIM((Concluído)):::ok
@@ -364,25 +337,17 @@ const flows=[
   stats:[["Campos","8"],["Alçadas","1"]],
   code:`flowchart TD
     START((Início)):::start --> CANC[Cancelamento RPA]:::proc
-    CANC --> FORM[Formulário]:::form
-    FORM --> F1[Cód. Fornecedor]:::field
-    FORM --> F2[Tipo]:::field
-    FORM --> F3[Motivo]:::field
-    FORM --> F4[Descrição]:::field
-    FORM --> F5[Ficha Viagem]:::field
-    FORM --> F6[CTE]:::field
-    FORM --> F7[Região]:::field
-    FORM --> F8[Dados Pagamento]:::field
-    F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 --> AG{Aprovação Gestor}:::gate
+    CANC --> FORM${F_PG}:::form
+    FORM --> AG{Aprovação<br/>Gestor}:::gate
     AG -->|Aprovado| USR[Usuário]:::ok
     AG -->|Reprovado| REP((Reprovado)):::bad
     USR --> FIM((Concluído)):::ok
     ${CLASS_DEFS}`},
 
  {id:"envio-nf",title:"Envio NF",crumb:"Envio NF",area:"Fiscal",tag:"fiscal",dot:"#d97706",
-  desc:"Envio de Nota Fiscal pela área Fiscal. Processo em desenvolvimento — mapeamento preliminar.",
+  desc:"Envio de Nota Fiscal pela área Fiscal. Processo em desenvolvimento, mapeamento preliminar.",
   stats:[["Status","Em dev."]],
-  code:`flowchart TD
+  code:`flowchart LR
     START((Início)):::start --> ROUTER{Área}:::gate
     ROUTER -->|CR| CR[Contas a Receber]:::area
     ROUTER -->|CP| CP[Contas a Pagar]:::area
@@ -453,7 +418,11 @@ function showWhole(){
   scale=Math.max(.15,Math.min(1.2,(viewport.clientWidth-pad)/natW,(viewport.clientHeight-pad)/natH));
   apply();viewport.scrollTop=0;viewport.scrollLeft=0;
 }
-function resetView(){fitToView();}
+function resetView(){
+  if(!natW)return;const pad=80;
+  const whole=Math.min(1.2,(viewport.clientWidth-pad)/natW,(viewport.clientHeight-pad)/natH);
+  if(whole>=.75){showWhole();}else{fitToView();}
+}
 /* recalcula o viewBox a partir do desenho real + margem: garante que nenhum nó seja cortado */
 function normalizeSvg(svg){
   const g=svg.querySelector("g");if(!g)return;
@@ -509,7 +478,7 @@ async function select(i){current=i;const f=flows[i];
     const el=canvas.querySelector("svg");
     if(el) normalizeSvg(el);
     canvas.querySelectorAll(".node").forEach(n=>n.addEventListener("click",ev=>{ev.stopPropagation();showDetail((n.textContent||"").trim());}));
-    fitToView();
+    resetView();
   }catch(e){diagramEl.textContent="Erro: "+e.message;}}
 window.zoomBy=zoomBy;window.resetView=resetView;window.toggleFs=toggleFs;window.downloadSvg=downloadSvg;window.downloadPng=downloadPng;window.hideDetail=hideDetail;window.showWhole=showWhole;
 window.addEventListener("resize",()=>setTimeout(fitToView,60));
