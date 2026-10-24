@@ -29,4 +29,7 @@ flowchart TD
     APROV2 -->|Aprovado| USER[Usuário gera desconto/crédito]
     APROV2 -->|Reprovado| FIM_REP
     USER --> FIM((Concluído))
+    FORM -->|variação| ITEM[Item / Título + Ano Fiscal]
+    ITEM --> AX1{Aprovação 1}
+    AX1 -->|Aprovado| AX2{Aprovação 2}
 ```

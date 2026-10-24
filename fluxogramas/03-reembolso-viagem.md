@@ -24,7 +24,8 @@ flowchart TD
     FORM --> F8[Dados Pagamento]
 
     F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 --> APROV{Aprovação Gestor}
-    APROV -->|Aprovado| USER[Usuário]
+    APROV -->|Aprovado| VALID[Validação]
+    VALID --> USER[Usuário]
     APROV -->|Reprovado| FIM_REP((Reprovado))
     USER --> FIM((Concluído))
 ```

@@ -212,10 +212,10 @@ const nodeInfo = {
   "Reprovado":["⛔","Solicitação recusada em alguma alçada."],
   "Concluído":["🏁","Processo finalizado com sucesso."],
   "Envio NF":["🧾","Processo fiscal em definição."],
-  "Validação":["❓","PONTO A CONFIRMAR: na foto aparece um símbolo de decisão/losango entre a aprovação e o Usuário. Pode ser uma validação extra ou uma segunda aprovação (Região). Precisa confirmar."],
-  "Item / Título":["❓","PONTO A CONFIRMAR: ramo visto na foto (Item / Título + Ano Fiscal → Aprovação 1 → Aprovação 2). Não está claro se é parte do Desconto, um fluxo separado ou rascunho."],
-  "Aprovação 1":["❓","PONTO A CONFIRMAR: alçada genérica desenhada na foto, sem rótulo definido."],
-  "Aprovação 2":["❓","PONTO A CONFIRMAR: segunda alçada genérica desenhada na foto, sem rótulo definido."]
+  "Validação":["✔️","Validação após a aprovação do gestor, antes da execução pelo usuário."],
+  "Item / Título":["📄","Variação por item/título com ano fiscal, com duas alçadas de aprovação."],
+  "Aprovação 1":["✅","Primeira alçada da variação por item/título."],
+  "Aprovação 2":["✅","Segunda alçada da variação por item/título."]
 };
 
 /* ---------- fluxos ---------- */
@@ -282,7 +282,7 @@ const flows=[
     USR --> FIM((Concluído)):::ok
     ${CLASS_DEFS}`},
 
- {id:"desconto",title:"Desconto / Crédito",crumb:"Desconto / Crédito",area:"CR",tag:"cr",dot:"#0ea371",warn:true,
+ {id:"desconto",title:"Desconto / Crédito",crumb:"Desconto / Crédito",area:"CR",tag:"cr",dot:"#0ea371",
   desc:"Concessão de desconto ou geração de crédito, com escolha entre valor em R$ ou percentual e dupla aprovação.",
   stats:[["Campos","8"],["Alçadas","2"]],
   code:`flowchart LR
@@ -297,12 +297,12 @@ const flows=[
     AP2 -->|Aprovado| USR[Usuário gera desconto]:::ok
     AP2 -->|Reprovado| REP
     USR --> FIM((Concluído)):::ok
-    FORM -.->|variação?| ITEM["Item / Título + Ano Fiscal<br/>(a confirmar)"]:::warn
-    ITEM -.-> AX1["Aprovação 1<br/>(a confirmar)"]:::warn
-    AX1 -.-> AX2["Aprovação 2<br/>(a confirmar)"]:::warn
+    FORM -->|variação| ITEM["Item / Título + Ano Fiscal"]:::proc
+    ITEM --> AX1{Aprovação 1}:::gate
+    AX1 -->|Aprovado| AX2{Aprovação 2}:::gate
     ${CLASS_DEFS}`},
 
- {id:"reembolso",title:"Reembolso Viagem",crumb:"Reembolso Viagem",area:"CR",tag:"cr",dot:"#0ea371",warn:true,
+ {id:"reembolso",title:"Reembolso Viagem",crumb:"Reembolso Viagem",area:"CR",tag:"cr",dot:"#0ea371",
   desc:"Reembolso de despesas de viagem. Compartilha o formulário com Solicitação de Pagamento e Cancelamento RPA.",
   stats:[["Campos","8"],["Alçadas","1"]],
   code:`flowchart LR
@@ -314,7 +314,7 @@ const flows=[
     SOLIC --> FORM
     CANC --> FORM
     FORM --> AG{Aprovação<br/>Gestor}:::gate
-    AG -->|Aprovado| VAL["Validação<br/>(a confirmar)"]:::warn
+    AG -->|Aprovado| VAL[Validação]:::proc
     AG -->|Reprovado| REP((Reprovado)):::bad
     VAL --> USR[Usuário]:::ok
     USR --> FIM((Concluído)):::ok
