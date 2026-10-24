@@ -433,10 +433,26 @@ let drag=false,sx,sy;
 viewport.addEventListener("mousedown",e=>{drag=true;sx=e.clientX-tx;sy=e.clientY-ty;viewport.classList.add("grabbing");});
 window.addEventListener("mousemove",e=>{if(drag){tx=e.clientX-sx;ty=e.clientY-sy;apply();}});
 window.addEventListener("mouseup",()=>{drag=false;viewport.classList.remove("grabbing");});
-function fitToView(){const svg=canvas.querySelector("svg");if(!svg)return;const r=viewport.getBoundingClientRect();
-  const vb=svg.viewBox&&svg.viewBox.baseVal;let w=vb&&vb.width?vb.width:svg.getBBox().width,h=vb&&vb.height?vb.height:svg.getBBox().height;
-  const pad=56;scale=Math.min((r.width-pad)/w,(r.height-pad)/h,1.4);if(!isFinite(scale)||scale<=0)scale=1;
-  tx=(r.width-w*scale)/2;ty=(r.height-h*scale)/2;if(ty<20)ty=20;apply();}
+function fitToView(){
+  const svg=canvas.querySelector("svg");if(!svg)return;
+  const r=viewport.getBoundingClientRect();
+  // usa a maior dimensão entre viewBox e bounding box real (evita corte)
+  let w=0,h=0;
+  const vb=svg.viewBox&&svg.viewBox.baseVal;
+  if(vb&&vb.width){w=vb.width;h=vb.height;}
+  try{const bb=svg.getBBox();w=Math.max(w,bb.width+bb.x);h=Math.max(h,bb.height+bb.y);}catch(e){}
+  if(!w||!h){w=svg.clientWidth||800;h=svg.clientHeight||600;}
+  // garante que o SVG não force tamanho fixo que estoure o container
+  svg.removeAttribute("height");svg.style.maxWidth="none";
+  const pad=64;
+  scale=Math.min((r.width-pad)/w,(r.height-pad)/h,1.4);
+  if(!isFinite(scale)||scale<=0)scale=1;
+  tx=(r.width-w*scale)/2;
+  ty=(r.height-h*scale)/2;
+  if(ty<24)ty=24;
+  if(tx<12)tx=12;
+  apply();
+}
 
 /* fullscreen & export */
 function toggleFs(){const el=document.getElementById("card");if(!document.fullscreenElement)el.requestFullscreen?.();else document.exitFullscreen();}
@@ -471,7 +487,9 @@ async function select(i){current=i;const f=flows[i];
   document.getElementById("warnBanner").style.display=f.warn?"block":"none";
   hideDetail();
   try{const{svg}=await mermaid.render("mmd-"+(counter++),f.code);diagramEl.innerHTML=svg;
-    setTimeout(()=>{canvas.querySelectorAll(".node").forEach(n=>n.addEventListener("click",ev=>{ev.stopPropagation();showDetail((n.textContent||"").trim());}));fitToView();},25);
+    canvas.querySelectorAll(".node").forEach(n=>n.addEventListener("click",ev=>{ev.stopPropagation();showDetail((n.textContent||"").trim());}));
+    // espera o layout do SVG estabilizar antes de calcular o fit (evita corte)
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{fitToView();setTimeout(fitToView,120);}));
   }catch(e){diagramEl.textContent="Erro: "+e.message;}}
 window.zoomBy=zoomBy;window.resetView=resetView;window.toggleFs=toggleFs;window.downloadSvg=downloadSvg;window.downloadPng=downloadPng;window.hideDetail=hideDetail;
 window.addEventListener("resize",()=>setTimeout(fitToView,60));
