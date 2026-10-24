@@ -106,12 +106,13 @@
     font-size:12px;font-weight:600;padding:6px 12px;border-radius:9px;letter-spacing:.3px}
   .hint{position:absolute;right:16px;bottom:16px;background:rgba(15,27,45,.82);color:#c5d2e8;
     font-size:11.5px;padding:6px 12px;border-radius:9px}
+  .warn-banner{margin:4px 40px 0;background:var(--amber-soft);border:1px solid #f0c56a;color:#8a5a00;
+    padding:11px 16px;border-radius:12px;font-size:13px;line-height:1.5}
 
   :fullscreen .diagram-card,:-webkit-full-screen .diagram-card{border-radius:0}
   :fullscreen .stage{margin:0}
   @media(max-width:860px){aside{display:none}.stats,.toolbar,.stage,header.top{padding-left:18px;padding-right:18px}}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 </head>
 <body>
   <aside>
@@ -148,6 +149,10 @@
       <button class="tbtn" onclick="toggleFs()">⛶ Tela cheia</button>
       <button class="tbtn" onclick="downloadSvg()">SVG</button>
       <button class="tbtn primary" onclick="downloadPng()">⬇ Baixar PNG</button>
+    </div>
+
+    <div class="warn-banner" id="warnBanner" style="display:none">
+      ⚠️ <b>Itens tracejados em laranja</b> são pontos do final do fluxo que ficaram ilegíveis nas fotos e precisam ser confirmados. Clique neles para ver a dúvida.
     </div>
 
     <div class="stage">
@@ -189,6 +194,7 @@ const CLASS_DEFS = `
     classDef ok fill:#e7f7f0,stroke:#0ea371,color:#0a7d57,font-weight:600;
     classDef bad fill:#fdeaea,stroke:#e26a6a,color:#b22a2a,font-weight:600;
     classDef dev fill:#fef3e2,stroke:#e3a84d,color:#8a5a00,stroke-dasharray:4 3;
+    classDef warn fill:#fff3d6,stroke:#e3a84d,color:#8a5a00,stroke-dasharray:5 3,font-weight:600;
 `;
 
 const nodeInfo = {
@@ -202,7 +208,11 @@ const nodeInfo = {
   "Valor do desconto":["🔀","Informar OU valor em R$ OU percentual."],
   "Reprovado":["⛔","Solicitação recusada em alguma alçada."],
   "Concluído":["🏁","Processo finalizado com sucesso."],
-  "Envio NF":["🧾","Processo fiscal em definição."]
+  "Envio NF":["🧾","Processo fiscal em definição."],
+  "Validação":["❓","PONTO A CONFIRMAR: na foto aparece um símbolo de decisão/losango entre a aprovação e o Usuário. Pode ser uma validação extra ou uma segunda aprovação (Região). Precisa confirmar."],
+  "Item / Título":["❓","PONTO A CONFIRMAR: ramo visto na foto (Item / Título + Ano Fiscal → Aprovação 1 → Aprovação 2). Não está claro se é parte do Desconto, um fluxo separado ou rascunho."],
+  "Aprovação 1":["❓","PONTO A CONFIRMAR: alçada genérica desenhada na foto, sem rótulo definido."],
+  "Aprovação 2":["❓","PONTO A CONFIRMAR: segunda alçada genérica desenhada na foto, sem rótulo definido."]
 };
 
 /* ---------- fluxos ---------- */
@@ -271,7 +281,7 @@ const flows=[
     USR --> FIM((Concluído)):::ok
     ${CLASS_DEFS}`},
 
- {id:"desconto",title:"Desconto / Crédito",crumb:"Desconto / Crédito",area:"CR",tag:"cr",dot:"#0ea371",
+ {id:"desconto",title:"Desconto / Crédito",crumb:"Desconto / Crédito",area:"CR",tag:"cr",dot:"#0ea371",warn:true,
   desc:"Concessão de desconto ou geração de crédito, com escolha entre valor fixo ou percentual e dupla aprovação.",
   stats:[["Campos","8"],["Alçadas","2"]],
   code:`flowchart TD
@@ -295,9 +305,12 @@ const flows=[
     AP2 -->|Aprovado| USR[Usuário gera desconto]:::ok
     AP2 -->|Reprovado| REP
     USR --> FIM((Concluído)):::ok
+    FORM -.-> ITEM["Item / Título + Ano Fiscal ❓"]:::warn
+    ITEM -.-> AX1["Aprovação 1 ❓"]:::warn
+    AX1 -.-> AX2["Aprovação 2 ❓"]:::warn
     ${CLASS_DEFS}`},
 
- {id:"reembolso",title:"Reembolso Viagem",crumb:"Reembolso Viagem",area:"CR",tag:"cr",dot:"#0ea371",
+ {id:"reembolso",title:"Reembolso Viagem",crumb:"Reembolso Viagem",area:"CR",tag:"cr",dot:"#0ea371",warn:true,
   desc:"Reembolso de despesas de viagem. Compartilha o formulário com Solicitação de Pagamento e Cancelamento RPA.",
   stats:[["Campos","8"],["Alçadas","1"]],
   code:`flowchart TD
@@ -317,8 +330,9 @@ const flows=[
     FORM --> F7[Região]:::field
     FORM --> F8[Dados Pagamento]:::field
     F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 --> AG{Aprovação Gestor}:::gate
-    AG -->|Aprovado| USR[Usuário]:::ok
+    AG -->|Aprovado| VAL["Validação ❓ (etapa a confirmar)"]:::warn
     AG -->|Reprovado| REP((Reprovado)):::bad
+    VAL --> USR[Usuário]:::ok
     USR --> FIM((Concluído)):::ok
     ${CLASS_DEFS}`},
 
@@ -374,7 +388,22 @@ const flows=[
     ${CLASS_DEFS}`}
 ];
 
-mermaid.initialize({startOnLoad:false, securityLevel:"loose", ...THEME});
+/* ---------- loader do Mermaid com fallback de CDN ---------- */
+const MERMAID_CDNS=[
+  "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",
+  "https://unpkg.com/mermaid@11/dist/mermaid.min.js",
+  "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"
+];
+function loadMermaid(i){
+  return new Promise((resolve,reject)=>{
+    if(i>=MERMAID_CDNS.length){reject(new Error("CDN"));return;}
+    const s=document.createElement("script");
+    s.src=MERMAID_CDNS[i];
+    s.onload=()=>resolve();
+    s.onerror=()=>{s.remove();loadMermaid(i+1).then(resolve,reject);};
+    document.head.appendChild(s);
+  });
+}
 
 const nav=document.getElementById("nav");
 const titleEl=document.getElementById("title"), crumbEl=document.getElementById("crumb");
@@ -439,13 +468,24 @@ async function select(i){current=i;const f=flows[i];
   titleEl.textContent=f.title;crumbEl.textContent=f.crumb;descEl.textContent=f.desc;
   if(f.tag){pillEl.textContent=f.area;pillEl.className="pill "+f.tag;pillEl.style.display="";}else pillEl.style.display="none";
   statsEl.innerHTML=(f.stats||[]).map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+  document.getElementById("warnBanner").style.display=f.warn?"block":"none";
   hideDetail();
   try{const{svg}=await mermaid.render("mmd-"+(counter++),f.code);diagramEl.innerHTML=svg;
     setTimeout(()=>{canvas.querySelectorAll(".node").forEach(n=>n.addEventListener("click",ev=>{ev.stopPropagation();showDetail((n.textContent||"").trim());}));fitToView();},25);
   }catch(e){diagramEl.textContent="Erro: "+e.message;}}
 window.zoomBy=zoomBy;window.resetView=resetView;window.toggleFs=toggleFs;window.downloadSvg=downloadSvg;window.downloadPng=downloadPng;window.hideDetail=hideDetail;
 window.addEventListener("resize",()=>setTimeout(fitToView,60));
-select(0);
+
+/* inicializa só depois que o Mermaid carregar (com fallback) */
+loadMermaid(0).then(()=>{
+  mermaid.initialize({startOnLoad:false, securityLevel:"loose", ...THEME});
+  select(0);
+}).catch(()=>{
+  diagramEl.innerHTML='<div style="padding:40px;text-align:center;color:#b22a2a;font-weight:600">'+
+    'Não foi possível carregar a biblioteca de diagramas (Mermaid) a partir das CDNs.<br>'+
+    '<span style="color:#56657e;font-weight:400">Verifique a conexão de internet e recarregue a página.</span></div>';
+  titleEl.textContent=flows[0].title;
+});
 </script>
 </body>
 </html>
