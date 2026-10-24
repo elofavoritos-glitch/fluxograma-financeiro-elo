@@ -1,514 +1,607 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fluxos Financeiros · ELO</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" href="vendor/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-  :root{
-    --bg:#f4f6fb; --ink:#0f1b2d; --ink-soft:#56657e; --line:#e4e9f2;
-    --brand:#0ea371; --brand-dark:#0a7d57; --brand-soft:#e7f7f0;
-    --blue:#2563eb; --blue-soft:#e8f0fe; --amber:#d97706; --amber-soft:#fef3e2;
-    --card:#ffffff; --shadow:0 1px 3px rgba(16,27,45,.06),0 10px 30px rgba(16,27,45,.07);
-    --radius:18px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%}
-  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);
-    -webkit-font-smoothing:antialiased;display:flex;min-height:100vh}
+@font-face{font-family:"Plus Jakarta Sans";src:url("vendor/plus-jakarta-sans.woff2") format("woff2");font-weight:200 800;font-style:normal;font-display:swap}
+:root{
+  --bg:#f4f6fa; --surface:#ffffff; --ink:#0d1b2e; --ink-2:#475670; --ink-3:#8492a8;
+  --line:#e5eaf2; --line-2:#d6deea;
+  --navy:#0a1930; --navy-2:#102544;
+  --brand:#0e9b6b; --brand-ink:#08744f; --brand-soft:#e7f6ef;
+  --cr:#0e9b6b; --cr-soft:#e7f6ef; --cr-ink:#08744f;
+  --cp:#3a5bd9; --cp-soft:#edf1ff; --cp-ink:#2d47b0;
+  --fi:#d47706; --fi-soft:#fff3e2; --fi-ink:#9c5604;
+  --bad:#d64545; --bad-soft:#fdeeee; --bad-line:#f5cfcf;
+  --shadow-sm:0 1px 2px rgba(13,27,46,.05);
+  --shadow:0 1px 2px rgba(13,27,46,.04),0 6px 20px rgba(13,27,46,.06);
+  --shadow-lg:0 2px 6px rgba(13,27,46,.06),0 18px 44px rgba(13,27,46,.11);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;font-size:15px;line-height:1.5;display:flex;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:inherit}
+.i{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.i-sm{width:16px;height:16px}.i-xs{width:14px;height:14px}
+.flip{transform:scaleX(-1)}
 
-  /* ---------- Sidebar ---------- */
-  aside{width:300px;background:linear-gradient(180deg,#0b1f3a,#0a1730);color:#dbe4f3;
-    flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
-  .brand{padding:26px 24px;display:flex;align-items:center;gap:13px;border-bottom:1px solid rgba(255,255,255,.08)}
-  .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--brand),#16c491);
-    display:grid;place-items:center;font-weight:800;font-size:19px;color:#042;box-shadow:0 6px 18px rgba(14,163,113,.4)}
-  .brand h1{font-size:16px;font-weight:700;color:#fff;letter-spacing:.2px}
-  .brand p{font-size:12px;color:#8ea2c4;margin-top:2px}
-  .nav-scroll{overflow-y:auto;padding:14px 0 30px;flex:1}
-  .nav-scroll::-webkit-scrollbar{width:7px}
-  .nav-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:10px}
-  .nav-sec{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:#5e73957a;
-    color:#60749b;padding:16px 24px 8px;font-weight:600}
-  nav button{display:flex;align-items:center;gap:12px;width:100%;padding:11px 24px;background:none;
-    border:0;color:#aebdd6;font-size:14px;font-weight:500;text-align:left;cursor:pointer;
-    border-left:3px solid transparent;transition:.18s;font-family:inherit}
-  nav button:hover{background:rgba(255,255,255,.05);color:#fff}
-  nav button.active{color:#fff;background:linear-gradient(90deg,rgba(14,163,113,.18),transparent);
-    border-left-color:var(--brand)}
-  nav button .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-  .tag{margin-left:auto;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:.3px}
-  .tag.cr{background:rgba(14,163,113,.2);color:#5fe3b0}
-  .tag.cp{background:rgba(37,99,235,.2);color:#92b4fb}
-  .tag.fiscal{background:rgba(217,119,6,.22);color:#f6c177}
-  .tag.all{background:rgba(255,255,255,.12);color:#cdd8ea}
-  .side-foot{padding:18px 24px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:#6a7ea1;line-height:1.6}
+/* ---------- barra lateral ---------- */
+.side{width:276px;flex:none;background:linear-gradient(180deg,var(--navy-2),var(--navy));color:#c9d5e8;
+  position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:12px;padding:24px 22px 22px;border-bottom:1px solid rgba(255,255,255,.07)}
+.logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:800;font-size:13px;letter-spacing:.06em;color:#fff;
+  background:linear-gradient(140deg,#14b07c,#0b8a5f);box-shadow:0 6px 16px rgba(14,155,107,.35)}
+.brand-txt b{display:block;color:#fff;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.brand-txt small{display:block;color:#8299bd;font-size:12px;margin-top:1px}
+.nav{flex:1;overflow-y:auto;padding:12px 0 24px}
+.nav::-webkit-scrollbar{width:6px}.nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:6px}
+.nav-sec{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#6c83a8;padding:18px 26px 7px}
+.dot{width:7px;height:7px;border-radius:50%}
+.dot.cr{background:var(--cr)}.dot.cp{background:#6d8bff}.dot.fi{background:#f0a23b}
+.nav-item{display:flex;align-items:center;gap:11px;margin:2px 12px;padding:9px 14px;border-radius:10px;color:#b3c2da;font-size:14px;font-weight:500;transition:background .15s,color .15s}
+.nav-item .i{opacity:.85}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.active{background:rgba(20,176,124,.16);color:#fff;box-shadow:inset 3px 0 0 #14b07c}
+.nav-tag{margin-left:auto;font-size:10.5px;font-weight:700;color:#f6c27a;background:rgba(212,119,6,.18);padding:2px 7px;border-radius:20px}
+.side-foot{padding:16px 24px 20px;border-top:1px solid rgba(255,255,255,.07);font-size:12px;color:#6c83a8;line-height:1.55}
 
-  /* ---------- Main ---------- */
-  main{flex:1;min-width:0;display:flex;flex-direction:column}
-  header.top{padding:26px 40px 18px;background:var(--card);border-bottom:1px solid var(--line)}
-  .crumbs{font-size:12px;color:var(--ink-soft);margin-bottom:8px;font-weight:500}
-  .crumbs b{color:var(--brand-dark)}
-  .title-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  header.top h2{font-size:25px;font-weight:800;letter-spacing:-.4px}
-  .pill{font-size:12px;font-weight:700;padding:5px 13px;border-radius:30px}
-  .pill.cr{background:var(--brand-soft);color:var(--brand-dark)}
-  .pill.cp{background:var(--blue-soft);color:var(--blue)}
-  .pill.fiscal{background:var(--amber-soft);color:var(--amber)}
-  header.top .sub{color:var(--ink-soft);font-size:14px;margin-top:9px;max-width:860px;line-height:1.55}
+/* ---------- página ---------- */
+main{flex:1;min-width:0}
+.page{max-width:1180px;margin:0 auto;padding:34px 44px 64px}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-3);font-weight:500;margin-bottom:18px}
+.crumbs a:hover{color:var(--brand-ink)}
+.crumb-sep{transform:rotate(-90deg);opacity:.6}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--brand-ink)}
+.eyebrow.cp{color:var(--cp-ink)}.eyebrow.fi{color:var(--fi-ink)}
+h1{font-size:32px;line-height:1.15;font-weight:800;letter-spacing:-.025em;margin-top:4px}
+.lead{font-size:16px;color:var(--ink-2);max-width:760px;margin-top:12px}
+.title-row{display:flex;align-items:center;gap:16px}
+.title-ico{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;flex:none}
+.title-ico .i{width:26px;height:26px}
+.title-ico.cr{background:var(--cr-soft);color:var(--cr-ink)}.title-ico.cp{background:var(--cp-soft);color:var(--cp-ink)}.title-ico.fi{background:var(--fi-soft);color:var(--fi-ink)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.meta-chip{font-size:13px;font-weight:600;color:var(--ink-2);background:var(--surface);border:1px solid var(--line);padding:5px 12px;border-radius:999px}
 
-  /* stat cards */
-  .stats{display:flex;gap:14px;padding:18px 40px 4px;flex-wrap:wrap}
-  .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 18px;
-    min-width:132px;box-shadow:var(--shadow)}
-  .stat .k{font-size:11px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.6px}
-  .stat .v{font-size:22px;font-weight:800;margin-top:3px}
-  .stat .v small{font-size:13px;color:var(--ink-soft);font-weight:600}
+/* ---------- barra de ações ---------- */
+.toolbar,.hero-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.toolbar{margin:24px 0 16px}
+.hero-actions{margin-top:22px}
+.grow{flex:1}
+.tbtn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 15px;border-radius:11px;background:var(--surface);border:1px solid var(--line-2);
+  font-size:14px;font-weight:600;color:var(--ink);box-shadow:var(--shadow-sm);transition:border-color .15s,box-shadow .15s,transform .15s}
+.tbtn:hover{border-color:var(--brand);box-shadow:var(--shadow)}
+.tbtn.on{border-color:var(--brand);color:var(--brand-ink);background:var(--brand-soft)}
+.tbtn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.tbtn.primary:hover{background:var(--brand-ink);border-color:var(--brand-ink)}
+.tbtn:disabled{opacity:.6;cursor:progress}
 
-  /* toolbar */
-  .toolbar{display:flex;gap:9px;padding:16px 40px 10px;flex-wrap:wrap;align-items:center}
-  .toolbar .grow{flex:1}
-  .tbtn{background:var(--card);color:var(--ink);border:1px solid var(--line);padding:9px 15px;
-    border-radius:11px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;
-    align-items:center;gap:7px;transition:.15s;box-shadow:var(--shadow);font-family:inherit}
-  .tbtn:hover{border-color:var(--brand);color:var(--brand-dark);transform:translateY(-1px)}
-  .tbtn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
-  .tbtn.primary:hover{background:var(--brand-dark);color:#fff}
+/* ---------- visão geral ---------- */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-top:28px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow-sm)}
+.kpi span{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.kpi b{display:block;font-size:30px;font-weight:800;letter-spacing:-.02em;margin-top:4px}
+.route{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow-sm)}
+.sec-title{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.route-steps{list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px}
+.route-steps li{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px}
+.route-steps li .num{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-ink);font-size:12px;font-weight:800}
+.route-steps li+li::before{content:"";width:22px;height:2px;background:var(--line-2);border-radius:2px;margin-right:2px}
+.area-block{margin-top:36px}
+.area-head{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.area-head h2{font-size:20px;font-weight:800;letter-spacing:-.015em}
+.area-head .count{font-size:13px;color:var(--ink-3);font-weight:600}
+.area-badge{font-size:11.5px;font-weight:800;letter-spacing:.04em;padding:4px 9px;border-radius:8px}
+.area-badge.cr{background:var(--cr-soft);color:var(--cr-ink)}.area-badge.cp{background:var(--cp-soft);color:var(--cp-ink)}.area-badge.fi{background:var(--fi-soft);color:var(--fi-ink)}
+.proc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+.proc-card{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);
+  transition:transform .18s,box-shadow .18s,border-color .18s}
+.proc-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg);border-color:var(--line-2)}
+.pc-top{display:flex;align-items:center;justify-content:space-between}
+.pc-ico{width:44px;height:44px;border-radius:13px;display:grid;place-items:center}
+.pc-ico .i{width:22px;height:22px}
+.pc-ico.cr{background:var(--cr-soft);color:var(--cr-ink)}.pc-ico.cp{background:var(--cp-soft);color:var(--cp-ink)}.pc-ico.fi{background:var(--fi-soft);color:var(--fi-ink)}
+.status{font-size:12px;font-weight:700;color:var(--fi-ink);background:var(--fi-soft);padding:4px 10px;border-radius:999px}
+.proc-card h3{font-size:17px;font-weight:700;letter-spacing:-.01em;margin-top:14px}
+.proc-card p{font-size:13.5px;color:var(--ink-2);margin-top:6px}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:14px}
+.chip{font-size:12px;font-weight:700;padding:4px 9px;border-radius:8px;background:var(--ks);color:var(--k)}
+.chip.muted{background:#f0f3f7;color:var(--ink-3)}
+.chain-arrow{color:var(--ink-3);width:13px;height:13px}
+.pc-foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:16px}
+.pc-foot>span:first-child{font-size:13px;color:var(--ink-3);font-weight:600}
+.go{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:700;color:var(--brand-ink)}
+.proc-card:hover .go .i{transform:translateX(3px)}
+.go .i{transition:transform .18s}
+.proc-card .chain{padding-bottom:2px}
+.pc-foot{border-top:1px solid var(--line);margin-top:16px}
 
-  /* canvas */
-  .stage{flex:1;margin:4px 40px 22px;position:relative;min-height:560px}
-  .diagram-card{background:
-      radial-gradient(circle at 1px 1px,#dfe6f2 1px,transparent 0) 0 0/22px 22px,
-      var(--card);
-    border:1px solid var(--line);border-radius:var(--radius);height:100%;min-height:440px;
-    position:relative;overflow:hidden;box-shadow:var(--shadow)}
-  #viewport{position:absolute;inset:0;overflow:auto;display:flex}
-  #viewport::-webkit-scrollbar{width:10px;height:10px}
-  #viewport::-webkit-scrollbar-thumb{background:#c3d0e4;border-radius:10px}
-  #canvas{width:max-content;margin:auto;padding:40px;flex:none}
-  #canvas svg{display:block;max-width:none!important;overflow:visible}
-  .mermaid{margin:0}
-  .node{cursor:pointer;transition:.15s}
-  .node:hover{filter:drop-shadow(0 4px 10px rgba(14,163,113,.35))}
+/* ---------- tipos de etapa ---------- */
+.k-form{--k:#5b4bc4;--ks:#f0eefe;--kl:#d9d3fb}
+.k-approval{--k:#b06d06;--ks:#fff4df;--kl:#f6dca6}
+.k-exec{--k:#08744f;--ks:#e7f6ef;--kl:#b9e5d1}
+.k-return{--k:#0b6a86;--ks:#e3f4f8;--kl:#b4dfea}
+.k-dev{--k:#6b7a92;--ks:#f0f3f7;--kl:#dde3ec}
 
-  /* detail panel */
-  #detail{position:absolute;right:16px;top:16px;width:270px;max-height:calc(100% - 32px);overflow-y:auto;
-    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;
-    box-shadow:0 20px 45px rgba(16,27,45,.18);display:none;animation:slideIn .22s ease}
-  @keyframes slideIn{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:none}}
-  #detail .close{float:right;cursor:pointer;color:var(--ink-soft);font-size:18px;line-height:1}
-  #detail .ico{width:36px;height:36px;border-radius:10px;background:var(--brand-soft);color:var(--brand-dark);
-    display:grid;place-items:center;font-size:18px;font-weight:800;margin-bottom:10px}
-  #detail h4{font-size:15px;margin-bottom:7px}
-  #detail p{color:var(--ink-soft);font-size:13px;line-height:1.55}
+/* ---------- fluxo do processo ---------- */
+.board{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:28px;box-shadow:var(--shadow)}
+.journey{display:flex;align-items:flex-start}
+.step-wrap{flex:1 1 0;min-width:124px;max-width:232px;display:flex;flex-direction:column;gap:8px}
+.step{position:relative;display:flex;flex-direction:column;gap:6px;width:100%;min-height:196px;padding:16px 15px 14px;background:var(--surface);
+  border:1.5px solid var(--line-2);border-radius:16px;box-shadow:var(--shadow-sm);transition:border-color .15s,box-shadow .15s,transform .15s}
+.step::before{content:"";position:absolute;left:16px;right:16px;top:-1.5px;height:3px;border-radius:0 0 3px 3px;background:var(--k);opacity:.9}
+.step:hover{border-color:var(--k);box-shadow:var(--shadow);transform:translateY(-2px)}
+.step:focus-visible{outline:3px solid var(--kl);outline-offset:2px}
+.step.open{border-color:var(--k);box-shadow:0 0 0 4px var(--ks),var(--shadow)}
+.step-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.num{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;background:var(--ks);color:var(--k);flex:none}
+.kind{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--k);text-align:right}
+.step-ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--ks);color:var(--k);margin-top:6px}
+.step-ico .i{width:21px;height:21px}
+.step-title{font-size:15.5px;font-weight:700;line-height:1.3;letter-spacing:-.01em;margin-top:4px}
+.step-sub{font-size:12.5px;color:var(--ink-3);font-weight:500;line-height:1.4}
+.step-end{display:inline-flex;align-items:center;gap:5px;align-self:flex-start;font-size:12px;font-weight:700;color:var(--brand-ink);background:var(--brand-soft);padding:3px 9px;border-radius:999px;margin-top:4px}
+.step-more{display:inline-flex;align-items:center;gap:4px;margin-top:auto;padding-top:8px;font-size:12.5px;font-weight:700;color:var(--k)}
+.step-more .i{transition:transform .2s}
+.step.open .step-more .i{transform:rotate(180deg)}
+.reject{display:flex;align-items:flex-start;gap:6px;font-size:12px;line-height:1.35;color:var(--bad);background:var(--bad-soft);border:1px solid var(--bad-line);border-radius:10px;padding:7px 9px}
+.reject .i{margin-top:1px}
+.conn{flex:0 0 44px;display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:84px;color:#9fb0c9}
+.conn-label{font-size:11px;font-weight:700;color:var(--brand-ink);min-height:16px}
+.conn .i{width:22px;height:22px}
 
-  .zoom-ind{position:absolute;left:16px;bottom:16px;background:rgba(15,27,45,.9);color:#dbe4f3;
-    font-size:12px;font-weight:600;padding:6px 12px;border-radius:9px;letter-spacing:.3px}
-  .hint{position:absolute;right:16px;bottom:16px;background:rgba(15,27,45,.82);color:#c5d2e8;
-    font-size:11.5px;padding:6px 12px;border-radius:9px}
-  .warn-banner{margin:4px 40px 0;background:var(--amber-soft);border:1px solid #f0c56a;color:#8a5a00;
-    padding:11px 16px;border-radius:12px;font-size:13px;line-height:1.5}
+/* fluxo empilhado quando não cabe na largura */
+.journey.vertical{flex-direction:column;align-items:stretch;max-width:600px;margin:0 auto}
+.journey.vertical .step-wrap{max-width:none;min-width:0}
+.journey.vertical .step{min-height:0;display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"ico top more" "ico title more" "ico sub more" "ico end more";column-gap:14px;row-gap:1px;align-items:center;padding:16px 18px}
+.journey.vertical .step-ico{grid-area:ico;margin:0}
+.journey.vertical .step-top{grid-area:top;justify-content:flex-start;gap:10px}
+.journey.vertical .step-title{grid-area:title;margin:0}
+.journey.vertical .step-sub{grid-area:sub}
+.journey.vertical .step-end{grid-area:end}
+.journey.vertical .step-more{grid-area:more;margin:0;padding:0}
+.journey.vertical .conn{flex:0 0 auto;margin:0;height:46px;flex-direction:row;justify-content:center;gap:8px}
+.journey.vertical .conn .i{transform:rotate(90deg)}
+.journey.vertical .conn-label{min-height:0}
 
-  :fullscreen .diagram-card,:-webkit-full-screen .diagram-card{border-radius:0}
-  :fullscreen .stage{margin:0}
-  @media(max-width:860px){aside{display:none}.stats,.toolbar,.stage,header.top{padding-left:18px;padding-right:18px}}
+/* ---------- detalhes expandidos ---------- */
+.details{display:flex;flex-direction:column;gap:14px;margin-top:22px}
+.hint-empty{display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;border:1.5px dashed var(--line-2);border-radius:14px;color:var(--ink-3);font-size:14px;font-weight:500}
+.detail{border:1px solid var(--line);border-left:4px solid var(--k);border-radius:16px;background:#fbfcfe;padding:18px 20px;animation:rise .22s ease}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.detail.flash{animation:flash .9s ease}
+@keyframes flash{0%{box-shadow:0 0 0 0 var(--kl)}40%{box-shadow:0 0 0 6px var(--kl)}100%{box-shadow:0 0 0 0 transparent}}
+.detail header{display:flex;align-items:center;gap:10px}
+.detail h4{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.detail .kind{text-align:left}
+.d-close{margin-left:auto;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--ink-3)}
+.d-close:hover{background:#eef2f7;color:var(--ink)}
+.d-desc{font-size:14.5px;color:var(--ink-2);margin-top:8px}
+.groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px;margin-top:14px}
+.group h5{font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin-bottom:8px}
+.fields{list-style:none;display:grid;gap:8px}
+.fields li{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-size:14px;font-weight:500}
+.fields li .i{color:var(--k)}
+.outcomes{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.oc{display:flex;align-items:center;gap:8px;font-size:14px;padding:9px 13px;border-radius:11px}
+.oc.ok{background:var(--brand-soft);color:var(--brand-ink)}
+.oc.bad{background:var(--bad-soft);color:var(--bad)}
+
+/* ---------- regras, pontos em aberto, navegação ---------- */
+.rules{margin-top:18px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 22px;box-shadow:var(--shadow-sm)}
+.rules h3{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.rules h3 .i{color:var(--brand)}
+.rules ul{list-style:none;margin-top:10px;display:grid;gap:8px}
+.rules li{position:relative;padding-left:18px;font-size:14.5px;color:var(--ink)}
+.rules li::before{content:"";position:absolute;left:2px;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--brand)}
+.open-points{margin-top:14px;border:1px solid var(--line);border-radius:14px;background:#fffdf8}
+.open-points summary{list-style:none;display:flex;align-items:center;gap:8px;padding:13px 18px;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--fi-ink)}
+.open-points summary::-webkit-details-marker{display:none}
+.open-points .cnt{background:var(--fi-soft);border-radius:999px;padding:0 8px;font-size:12px}
+.open-points .chev{margin-left:auto;transition:transform .2s}
+.open-points[open] .chev{transform:rotate(180deg)}
+.open-points ul{padding:0 18px 14px 40px;display:grid;gap:6px;font-size:14px;color:var(--ink-2)}
+.pager{display:flex;justify-content:space-between;gap:12px;margin-top:28px}
+.pg{display:inline-flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow-sm);font-weight:700;font-size:14px;transition:border-color .15s,box-shadow .15s}
+.pg:hover{border-color:var(--brand);box-shadow:var(--shadow)}
+.pg small{display:block;font-size:11.5px;color:var(--ink-3);font-weight:600}
+.pg.next{text-align:right}
+
+/* ---------- exportação e apresentação ---------- */
+.export-area.exporting{padding:36px;background:var(--bg);width:1180px}
+.export-area.exporting .page-head{padding-top:4px}
+.pres-hint{display:none;position:fixed;right:18px;bottom:18px;z-index:5;background:rgba(10,25,48,.88);color:#dbe5f4;font-size:12.5px;font-weight:600;padding:8px 13px;border-radius:10px}
+body.present .side,body.present .crumbs{display:none}
+body.present .page{max-width:1440px;padding-top:30px}
+body.present .pres-hint{display:block}
+
+@media (max-width:900px){
+  body{display:block}
+  .side{position:static;width:auto;height:auto}
+  .side-foot{display:none}
+  .brand{padding:16px 18px}
+  .nav{display:flex;overflow-x:auto;padding:8px 10px 12px;gap:4px}
+  .nav-sec{display:none}
+  .nav-item{flex:none;margin:0}
+  .page{padding:22px 18px 48px}
+  h1{font-size:26px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .board{padding:18px}
+}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  body{display:block;background:#fff}
+  .side,.toolbar,.hero-actions,.pager,.crumbs,.open-points,.pres-hint,.d-close,.hint-empty{display:none!important}
+  .page{max-width:none;padding:0}
+  .board,.kpi,.proc-card,.rules,.step,.route{box-shadow:none!important}
+  .step-wrap{min-width:0!important}
+  .conn{flex-basis:30px!important}
+  .detail,.proc-card,.step-wrap,.rules{break-inside:avoid}
+  .detail{animation:none}
+}
 </style>
 </head>
 <body>
-  <aside>
-    <div class="brand">
-      <div class="logo">E</div>
-      <div><h1>Fluxos Financeiros</h1><p>ELO · Mapeamento de processos</p></div>
-    </div>
-    <div class="nav-scroll">
-      <nav id="nav"></nav>
-    </div>
-    <div class="side-foot">
-      CR · Contas a Receber &nbsp;|&nbsp; CP · Contas a Pagar<br/>
-      Baseado no quadro e nas anotações de planejamento.
-    </div>
-  </aside>
+<aside class="side">
+  <a class="brand" href="#/">
+    <span class="logo">ELO</span>
+    <span class="brand-txt"><b>Fluxos Financeiros</b><small>Mapa de processos</small></span>
+  </a>
+  <nav class="nav" id="nav" aria-label="Processos"></nav>
+  <div class="side-foot">Baseado no quadro e nas anotações de planejamento.</div>
+</aside>
+<main id="main"><div id="view"></div></main>
+<div class="pres-hint">← → troca de processo · Esc sai</div>
 
-  <main>
-    <header class="top">
-      <div class="crumbs">Processos financeiros &nbsp;›&nbsp; <b id="crumb"></b></div>
-      <div class="title-row">
-        <h2 id="title"></h2>
-        <span id="pill" class="pill"></span>
-      </div>
-      <p class="sub" id="desc"></p>
-    </header>
-
-    <div class="stats" id="stats"></div>
-
-    <div class="toolbar">
-      <button class="tbtn" onclick="zoomBy(1.2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Ampliar</button>
-      <button class="tbtn" onclick="zoomBy(.8)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/></svg>Reduzir</button>
-      <button class="tbtn" onclick="resetView()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Ajustar</button>
-      <button class="tbtn" onclick="showWhole()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>Ver inteiro</button>
-      <span class="grow"></span>
-      <button class="tbtn" onclick="toggleFs()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>Tela cheia</button>
-      <button class="tbtn" onclick="downloadSvg()">SVG</button>
-      <button class="tbtn primary" onclick="downloadPng()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Baixar PNG</button>
-    </div>
-
-    <div class="warn-banner" id="warnBanner" style="display:none">
-      ⚠️ <b>Itens tracejados em laranja</b> são pontos do final do fluxo que ficaram ilegíveis nas fotos e precisam ser confirmados. Clique neles para ver a dúvida.
-    </div>
-
-    <div class="stage">
-      <div class="diagram-card" id="card">
-        <div id="viewport"><div id="canvas"><pre class="mermaid" id="diagram"></pre></div></div>
-        <div class="zoom-ind" id="zoomInd">100%</div>
-        <div class="hint">Role para navegar · Ctrl+scroll ou ＋/－ para zoom · clique num nó</div>
-        <div id="detail">
-          <span class="close" onclick="hideDetail()">✕</span>
-          <div class="ico" id="detailIco">•</div>
-          <h4 id="detailTitle"></h4>
-          <p id="detailBody"></p>
-        </div>
-      </div>
-    </div>
-  </main>
-
+<script src="vendor/html-to-image.js"></script>
 <script>
-/* ---------- estilo visual dos diagramas ---------- */
-const THEME = {
-  theme:"base",
-  themeVariables:{
-    fontFamily:"Inter, sans-serif", fontSize:"15px",
-    primaryColor:"#ffffff", primaryTextColor:"#0f1b2d", primaryBorderColor:"#cdd8ea",
-    lineColor:"#9fb0cc", secondaryColor:"#eef3fb", tertiaryColor:"#f4f6fb",
-    clusterBkg:"#f7f9fd", clusterBorder:"#dde5f1"
-  },
-  flowchart:{useMaxWidth:false, htmlLabels:true, curve:"basis", nodeSpacing:46, rankSpacing:58, padding:14}
+"use strict";
+/* ---------- ícones (traço vetorial) ---------- */
+const ICONS={
+  calendar:'<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  percent:'<path d="M19 5 5 19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+  banknote:'<rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+  plane:'<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
+  truck:'<path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5"/><path d="M14 17h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+  filex:'<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><path d="M14 2v6h6"/><path d="m9.5 12.5 5 5M14.5 12.5l-5 5"/>',
+  form:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>',
+  receipt:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 17.5v-11"/>',
+  card:'<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>',
+  shield:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+  user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  send:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  reply:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  search:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  arrow:'<path d="M5 12h14M12 5l7 7-7 7"/>',
+  undo:'<path d="M9 14 4 9l5-5"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>',
+  expand:'<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
+  download:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/>',
+  printer:'<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/>',
+  chevron:'<path d="m6 9 6 6 6-6"/>',
+  layers:'<path d="m12 2 10 5-10 5L2 7l10-5z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  help:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/>',
+  x:'<path d="M18 6 6 18M6 6l12 12"/>'
 };
+const ic=(n,c="i")=>`<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${ICONS[n]||""}</svg>`;
 
-/* comum: classes de cor aplicáveis nos diagramas */
-const CLASS_DEFS = `
-    classDef start fill:#0f1b2d,stroke:#0f1b2d,color:#fff,rx:30,ry:30;
-    classDef area fill:#eef3fb,stroke:#c3d2ee,color:#1b3a6b,font-weight:600;
-    classDef proc fill:#ffffff,stroke:#cdd8ea,color:#0f1b2d;
-    classDef form fill:#f3f0ff,stroke:#d6ccfb,color:#3b2f73;
-    classDef field fill:#ffffff,stroke:#e1e7f2,color:#44546e;
-    classDef gate fill:#fff8e8,stroke:#f0c56a,color:#8a5a00,font-weight:600;
-    classDef ok fill:#e7f7f0,stroke:#0ea371,color:#0a7d57,font-weight:600;
-    classDef bad fill:#fdeaea,stroke:#e26a6a,color:#b22a2a,font-weight:600;
-    classDef dev fill:#fef3e2,stroke:#e3a84d,color:#8a5a00,stroke-dasharray:4 3;
-    classDef warn fill:#fff3d6,stroke:#e3a84d,color:#8a5a00,stroke-dasharray:5 3,font-weight:600;
-`;
-
-const nodeInfo = {
-  "Gerente Regional":["✅","Primeira alçada: gerente da região."],
-  "Gestor imediato":["✅","Primeira alçada do reembolso: gestor imediato de quem viajou."],
-  "Aprovação Região":["✅","Alçada única: responsável pela região."],
-  "Aprovação Gerente":["✅","Primeira alçada: gerente."],
-  "Aprovação Gestor":["✅","Alçada única: gestor responsável."],
-  "Aprovação Financeiro":["✅","Segunda alçada: validação final do Financeiro."],
-  "Volta ao solicitante":["↩️","Se recusada em qualquer alçada, a solicitação volta para o solicitante."],
-  "Retorno ao cliente":["📨","Se aprovada, o retorno da alteração vai para o cliente."],
-  "Reprovado":["⛔","Solicitação recusada em alguma alçada."],
-  "Concluído":["🏁","Processo finalizado."],
-  "Contas a Receber":["💰","Área CR: Alteração de Vencimento/Prazo, Desconto Comercial e Crédito."],
-  "Contas a Pagar":["💳","Área CP: Reembolso Viagem, Pagamento Complementar de Frete e Cancelamento RPA."],
-  "Envio NF":["🧾","Processo fiscal em definição."],
-  "Fiscal":["🧾","Área Fiscal: Envio de Nota Fiscal (em desenvolvimento)."],
-  "Dados da viagem":["🧳","Data da viagem, origem, destino e motivo."],
-  "Despesas":["🧾","Lançadas uma a uma, cada uma com o comprovante anexado."],
-  "Deslocamento":["🚕","Uber/Táxi ou quilometragem rodada."],
-  "Dados de pagamento":["🏦","Conta para receber o reembolso: PIX ou conta corrente."],
-  "Item":["📄","Alteração via Cadastro: um ou mais títulos e o novo prazo, na mesma solicitação. Segue o mesmo fluxo de aprovação."],
-  "Usuário analisa":["👤","O Crédito não passa por alçada: o usuário analisa e responde."],
-  "Resposta":["💬","Retorno ao solicitante."],
-  "Formulário":["📝","Campos preenchidos pelo solicitante."],
-  "Usuário":["👤","Execução pela equipe responsável."]
+/* ---------- dados dos processos ---------- */
+const AREAS=[
+  {id:"CR",name:"Contas a Receber",short:"CR",cls:"cr"},
+  {id:"CP",name:"Contas a Pagar",short:"CP",cls:"cp"},
+  {id:"FI",name:"Fiscal",short:"Fiscal",cls:"fi"}
+];
+const AREA=Object.fromEntries(AREAS.map(a=>[a.id,a]));
+const KIND={
+  form:{label:"Formulário",icon:"form"},
+  approval:{label:"Aprovação",icon:"shield"},
+  exec:{label:"Execução",icon:"user"},
+  return:{label:"Retorno",icon:"send"},
+  dev:{label:"Em definição",icon:"clock"}
 };
+const REPROVA="O que acontece na reprovação? Hoje está como “solicitação reprovada”. Deve voltar ao solicitante, como na Alteração de Vencimento?";
 
-/* ---------- fluxos ---------- */
-const F_PG = `["<b>Formulário</b><br/>Cód. Fornecedor · Tipo (lista) · Motivo (lista)<br/>Descrição · Ficha Viagem · CTe<br/>Região · Dados Pagamento"]`;
+const P=[
+ {id:"alteracao",area:"CR",icon:"calendar",title:"Alteração de Vencimento / Prazo",short:"Alteração de Vencimento",fields:6,
+  summary:"Altera a data de vencimento ou o prazo de títulos do cliente. Aceita vários títulos na mesma solicitação.",
+  steps:[
+   {type:"form",title:"Formulário",sub:"2 caminhos",desc:"O solicitante escolhe o caminho. Os dois seguem o mesmo fluxo de aprovação.",
+    groups:[{label:"Com faturamento",fields:["Títulos (1 ou mais)","Cód. Cliente","Motivo (pré-definido)","Justificativa (texto livre)","Nova data","Região"]},
+            {label:"Cadastro",fields:["Títulos (1 ou mais)","Novo prazo"]}]},
+   {type:"approval",title:"Gerente Regional",sub:"1ª aprovação",desc:"O gerente da região avalia a alteração.",reject:"volta ao solicitante"},
+   {type:"approval",title:"Financeiro",sub:"2ª aprovação",desc:"O Financeiro faz a validação final.",reject:"volta ao solicitante"},
+   {type:"exec",title:"Usuário executa",sub:"Equipe de CR",desc:"A alteração aprovada é aplicada nos títulos."},
+   {type:"return",title:"Retorno ao cliente",sub:"Fim do fluxo",desc:"O cliente recebe o retorno da alteração aprovada."}
+  ],
+  rules:["Vários títulos podem entrar na mesma solicitação.","Recusada em qualquer aprovação, a solicitação volta ao solicitante.","Aprovada, o retorno vai para o cliente."],
+  open:["O que vem depois de “Usuário executa” no caminho Cadastro (anotação parecida com “OK por aviso”)?"]},
 
-const flows=[
- {id:"todos",group:"Panorama",title:"Visão consolidada",crumb:"Visão consolidada",area:"ALL",tag:"all",dot:"#94a3b8",
-  desc:"O caminho de cada solicitação: área, processo, alçadas de aprovação e execução. Formulários e reprovações estão no detalhe de cada processo.",
-  stats:[["Áreas","3"],["Processos","7"],["Alçadas","0 a 2"]],
-  code:`flowchart LR
-    START((Solicitação)):::start --> ROUTER{Área}:::gate
-    ROUTER -->|CR| CR[Contas a Receber]:::area
-    ROUTER -->|CP| CP[Contas a Pagar]:::area
-    ROUTER -->|Fiscal| FISCAL[Fiscal]:::area
-    CR --> ALT[Alteração Venc./Prazo]:::proc
-    CR --> DESC[Desconto Comercial]:::proc
-    CR --> CRED[Crédito]:::proc
-    ALT --> AGR{Aprovação<br/>Gerente Regional}:::gate
-    DESC --> AGR
-    AGR --> AF1{Aprovação<br/>Financeiro}:::gate
-    AF1 --> U1[Usuário executa]:::ok
-    CRED -->|sem aprovação| U2[Usuário analisa<br/>e responde]:::ok
-    CP --> REEMB[Reembolso Viagem]:::proc
-    CP --> SOLIC[Pagto Complementar<br/>de Frete]:::proc
-    CP --> CANC[Cancelamento RPA]:::proc
-    REEMB --> AGI{Aprovação<br/>Gestor imediato}:::gate
-    AGI --> AF2{Aprovação<br/>Financeiro}:::gate
-    SOLIC --> AGS{Aprovação<br/>Gestor}:::gate
-    CANC --> AGRE{Aprovação<br/>Região}:::gate
-    AF2 --> U3[Usuário executa]:::ok
-    AGS --> U3
-    AGRE --> U3
-    FISCAL --> NF[Envio NF<br/>em desenvolvimento]:::dev
-    ${CLASS_DEFS}`},
+ {id:"desconto",area:"CR",icon:"percent",title:"Desconto Comercial",short:"Desconto Comercial",fields:7,
+  summary:"Desconto comercial sobre um título, informado em valor (R$) ou em percentual.",
+  steps:[
+   {type:"form",title:"Formulário",sub:"7 campos",desc:"Dados do título e do desconto pedido.",
+    groups:[{label:"Título e cliente",fields:["Título","Cód. Cliente","Valor original","Regional"]},
+            {label:"Desconto",fields:["Valor do desconto (R$) ou % de desconto","Motivo","Justificativa"]}]},
+   {type:"approval",title:"Gerente",sub:"1ª aprovação",desc:"O gerente avalia o desconto.",reject:"solicitação reprovada"},
+   {type:"approval",title:"Financeiro",sub:"2ª aprovação",desc:"O Financeiro faz a validação final.",reject:"solicitação reprovada"},
+   {type:"exec",title:"Usuário executa",sub:"Equipe de CR",desc:"O desconto aprovado é aplicado no título.",done:true}
+  ],
+  rules:["O desconto é informado em R$ ou em percentual."],
+  open:[REPROVA]},
 
- {id:"visao-geral",group:"Panorama",title:"Visão geral",crumb:"Visão geral",area:"",tag:"",dot:"#94a3b8",
-  desc:"Roteamento das solicitações entre as três áreas e seus processos.",
-  stats:[["Áreas","3"],["Processos","7"]],
-  code:`flowchart LR
-    START((Solicitação)):::start --> ROUTER{Área}:::gate
-    ROUTER -->|CR| CR[Contas a Receber]:::area
-    ROUTER -->|CP| CP[Contas a Pagar]:::area
-    ROUTER -->|Fiscal| FISCAL[Fiscal]:::area
-    CR --> ALT[Alteração Venc./Prazo]:::proc
-    CR --> DESC[Desconto Comercial]:::proc
-    CR --> CRED[Crédito]:::proc
-    CP --> REEMB[Reembolso Viagem]:::proc
-    CP --> SOLIC[Pagto Complementar de Frete]:::proc
-    CP --> CANC[Cancelamento RPA]:::proc
-    FISCAL --> NF[Envio NF em desenvolvimento]:::dev
-    ${CLASS_DEFS}`},
+ {id:"credito",area:"CR",icon:"banknote",title:"Crédito",short:"Crédito",fields:2,
+  summary:"Pedido de crédito para o cliente. Não passa por aprovação: o usuário analisa e responde.",
+  steps:[
+   {type:"form",title:"Formulário",sub:"2 campos",desc:"Identificação do cliente e descrição do pedido.",groups:[{label:"Campos",fields:["Cód. Cliente","Descrição"]}]},
+   {type:"exec",icon:"search",title:"Usuário analisa",sub:"Sem aprovação",desc:"O pedido vai direto para a equipe, sem alçada de aprovação."},
+   {type:"return",icon:"reply",title:"Resposta ao solicitante",sub:"Fim do fluxo",desc:"O solicitante recebe a resposta da análise."}
+  ],
+  rules:["Não passa por aprovação."],open:[]},
 
- {id:"alteracao",group:"Contas a Receber",title:"Alteração de Vencimento / Prazo",crumb:"Alteração Venc./Prazo",area:"CR",tag:"cr",dot:"#0ea371",
-  desc:"Dois caminhos: com faturamento (formulário completo) ou via cadastro (títulos + novo prazo, mesmo fluxo). Aceita vários títulos na mesma solicitação. Passa pelo Gerente Regional e pelo Financeiro: se recusada, volta ao solicitante; se aprovada, o retorno vai para o cliente.",
-  stats:[["Caminhos","2"],["Títulos","1 ou mais"],["Alçadas","2"]],
-  code:`flowchart LR
-    START((Início)):::start --> TIPO{Tipo de<br/>alteração}:::gate
-    TIPO -->|Com faturamento| FORM["<b>Formulário</b><br/>Títulos (1 ou mais) · Cód. Cliente<br/>Motivo (pré-definido)<br/>Justificativa (texto)<br/>Nova data · Região"]:::form
-    TIPO -->|Cadastro| ITEM["<b>Item</b><br/>Títulos (1 ou mais) + Novo prazo<br/>(mesmo fluxo)"]:::form
-    FORM --> AP1{Aprovação<br/>Gerente Regional}:::gate
-    ITEM --> AP1
-    AP1 -->|Aprovado| AP2{Aprovação<br/>Financeiro}:::gate
-    AP2 -->|Aprovado| USR[Usuário executa]:::ok
-    USR --> CLI[Retorno ao<br/>cliente]:::ok
-    CLI --> FIM((Concluído)):::ok
-    AP1 -->|Recusado| VOLTA[Volta ao<br/>solicitante]:::bad
-    AP2 -->|Recusado| VOLTA
-    ${CLASS_DEFS}`},
+ {id:"reembolso",area:"CP",icon:"plane",title:"Reembolso Viagem",short:"Reembolso Viagem",fields:null,
+  summary:"Reembolso das despesas de uma viagem, lançadas uma a uma com o comprovante anexado.",
+  steps:[
+   {type:"form",icon:"plane",title:"Dados da viagem",sub:"4 campos",desc:"Informações gerais da viagem.",groups:[{label:"Campos",fields:["Data da viagem","Origem","Destino","Motivo"]}]},
+   {type:"form",icon:"receipt",title:"Despesas",sub:"Uma a uma, com comprovante",desc:"Cada despesa é lançada separadamente, com o comprovante anexado.",
+    groups:[{label:"Tipos de despesa",fields:["Refeição: descrição e valor (R$)","Hospedagem: descrição e valor (R$)","Passagem","Deslocamento: Uber/Táxi ou quilometragem"]}]},
+   {type:"form",icon:"card",title:"Dados de pagamento",sub:"Conta do reembolso",desc:"Para onde o valor do reembolso será pago.",groups:[{label:"Opções",fields:["PIX","Conta corrente"]}]},
+   {type:"approval",title:"Gestor imediato",sub:"1ª aprovação",desc:"O gestor imediato de quem viajou avalia as despesas.",reject:"solicitação reprovada"},
+   {type:"approval",title:"Financeiro",sub:"2ª aprovação",desc:"O Financeiro faz a validação final.",reject:"solicitação reprovada"},
+   {type:"exec",title:"Usuário executa",sub:"Equipe de CP",desc:"O reembolso aprovado é pago.",done:true}
+  ],
+  rules:["Cada despesa é lançada separadamente, com o comprovante anexado.","Deslocamento pode ser por Uber/Táxi ou por quilometragem."],
+  open:["A seta que volta do fim para o início significa “adicionar mais despesas”?","Em “Dados de pagamento (PIX / CC / ...)”, qual é a terceira opção?",REPROVA]},
 
- {id:"desconto",group:"Contas a Receber",title:"Desconto Comercial",crumb:"Desconto Comercial",area:"CR",tag:"cr",dot:"#0ea371",
-  desc:"Desconto comercial sobre um título, informado em R$ ou em percentual. Dupla aprovação: Gerente e Financeiro.",
-  stats:[["Campos","7"],["Alçadas","2"]],
-  code:`flowchart LR
-    START((Início)):::start --> DESC[Desconto Comercial]:::proc
-    DESC --> FORM["<b>Formulário</b><br/>Título · Cód. Cliente<br/>Motivo · Justificativa<br/>Valor Desc. (R$) <b>ou</b> % Desc.<br/>Valor Original · Regional"]:::form
-    FORM --> AP1{Aprovação<br/>Gerente}:::gate
-    AP1 -->|Aprovado| AP2{Aprovação<br/>Financeiro}:::gate
-    AP1 -->|Reprovado| REP((Reprovado)):::bad
-    AP2 -->|Aprovado| USR[Usuário executa]:::ok
-    AP2 -->|Reprovado| REP
-    USR --> FIM((Concluído)):::ok
-    ${CLASS_DEFS}`},
+ {id:"pagamento",area:"CP",icon:"truck",title:"Pagamento Complementar de Frete",short:"Pagto Complementar de Frete",fields:8,
+  summary:"Pagamento complementar de frete a fornecedor, com aprovação do gestor.",
+  steps:[
+   {type:"form",title:"Formulário",sub:"8 campos",desc:"Dados do fornecedor, do frete e do pagamento.",
+    groups:[{label:"Fornecedor e pedido",fields:["Cód. Fornecedor","Tipo (lista)","Motivo (lista)","Descrição"]},
+            {label:"Frete e pagamento",fields:["Ficha de viagem","CTe","Região","Dados de pagamento"]}]},
+   {type:"approval",title:"Gestor",sub:"Aprovação única",desc:"O gestor avalia o pagamento.",reject:"solicitação reprovada"},
+   {type:"exec",title:"Usuário executa",sub:"Equipe de CP",desc:"O pagamento aprovado é feito.",done:true}
+  ],
+  rules:[],open:[REPROVA]},
 
- {id:"credito",group:"Contas a Receber",title:"Crédito",crumb:"Crédito",area:"CR",tag:"cr",dot:"#0ea371",
-  desc:"Solicitação de crédito para o cliente. Não passa por alçada de aprovação: o usuário analisa e responde ao solicitante.",
-  stats:[["Campos","2"],["Alçadas","0"]],
-  code:`flowchart LR
-    START((Início)):::start --> CRED[Crédito]:::proc
-    CRED --> FORM["<b>Formulário</b><br/>Cód. Cliente · Descrição"]:::form
-    FORM -->|sem aprovação| USR[Usuário analisa]:::ok
-    USR --> RESP[Resposta ao<br/>solicitante]:::ok
-    RESP --> FIM((Concluído)):::ok
-    ${CLASS_DEFS}`},
+ {id:"cancelamento",area:"CP",icon:"filex",title:"Cancelamento RPA",short:"Cancelamento RPA",fields:5,
+  summary:"Cancelamento de Recibo de Pagamento a Autônomo, com aprovação da região.",
+  steps:[
+   {type:"form",title:"Formulário",sub:"5 campos",desc:"Motivo do cancelamento e dados da viagem.",groups:[{label:"Campos",fields:["Motivo","Descrição","Ficha de viagem","CTe","Região"]}]},
+   {type:"approval",title:"Região",sub:"Aprovação única",desc:"O responsável pela região avalia o cancelamento.",reject:"solicitação reprovada"},
+   {type:"exec",title:"Usuário executa",sub:"Equipe de CP",desc:"O RPA é cancelado.",done:true}
+  ],
+  rules:[],open:[REPROVA]},
 
- {id:"reembolso",group:"Contas a Pagar",title:"Reembolso Viagem",crumb:"Reembolso Viagem",area:"CP",tag:"cp",dot:"#2563eb",
-  desc:"Reembolso de despesas de viagem: dados da viagem, despesas lançadas uma a uma com comprovante e dados para pagamento. Aprovação do gestor imediato e do Financeiro.",
-  stats:[["Tipos de despesa","4"],["Alçadas","2"]],
-  code:`flowchart LR
-    START((Início)):::start --> REEMB[Reembolso Viagem]:::proc
-    REEMB --> VIAG["<b>Dados da viagem</b><br/>Data · Origem · Destino<br/>Motivo"]:::form
-    VIAG --> DESP["<b>Despesas</b><br/>uma a uma, com anexo<br/>do comprovante"]:::form
-    DESP --> T1["Refeição<br/>descrição · R$"]:::field
-    DESP --> T2["Hospedagem<br/>descrição · R$"]:::field
-    DESP --> T3[Passagem]:::field
-    DESP --> T4["Deslocamento<br/>Uber/Táxi ou Km"]:::field
-    T1 & T2 & T3 & T4 --> PG["<b>Dados de pagamento</b><br/>PIX · Conta corrente"]:::form
-    PG --> AP1{Aprovação<br/>Gestor imediato}:::gate
-    AP1 -->|Aprovado| AP2{Aprovação<br/>Financeiro}:::gate
-    AP1 -->|Reprovado| REP((Reprovado)):::bad
-    AP2 -->|Aprovado| USR[Usuário]:::ok
-    AP2 -->|Reprovado| REP
-    USR --> FIM((Concluído)):::ok
-    ${CLASS_DEFS}`},
-
- {id:"solicitacao",group:"Contas a Pagar",title:"Pagamento Complementar de Frete",crumb:"Pagto Complementar",area:"CP",tag:"cp",dot:"#2563eb",
-  desc:"Solicitação de pagamento complementar de frete. Aprovação do gestor antes da execução.",
-  stats:[["Campos","8"],["Alçadas","1"]],
-  code:`flowchart LR
-    START((Início)):::start --> SOLIC[Solicitação de Pagamento<br/>complementar de frete]:::proc
-    SOLIC --> FORM${F_PG}:::form
-    FORM --> AG{Aprovação<br/>Gestor}:::gate
-    AG -->|Aprovado| USR[Usuário]:::ok
-    AG -->|Reprovado| REP((Reprovado)):::bad
-    USR --> FIM((Concluído)):::ok
-    ${CLASS_DEFS}`},
-
- {id:"cancelamento",group:"Contas a Pagar",title:"Cancelamento RPA",crumb:"Cancelamento RPA",area:"CP",tag:"cp",dot:"#2563eb",
-  desc:"Cancelamento de Recibo de Pagamento a Autônomo, com aprovação da região.",
-  stats:[["Campos","5"],["Alçadas","1"]],
-  code:`flowchart LR
-    START((Início)):::start --> CANC[Cancelamento RPA]:::proc
-    CANC --> FORM["<b>Formulário</b><br/>Motivo · Descrição<br/>Ficha Viagem · CTe · Região"]:::form
-    FORM --> AG{Aprovação<br/>Região}:::gate
-    AG -->|Aprovado| USR[Usuário]:::ok
-    AG -->|Reprovado| REP((Reprovado)):::bad
-    USR --> FIM((Concluído)):::ok
-    ${CLASS_DEFS}`},
-
- {id:"envio-nf",group:"Fiscal",title:"Envio NF",crumb:"Envio NF",area:"Fiscal",tag:"fiscal",dot:"#d97706",
-  desc:"Envio de Nota Fiscal pela área Fiscal. Processo em desenvolvimento, mapeamento preliminar.",
-  stats:[["Status","Em dev."]],
-  code:`flowchart LR
-    START((Início)):::start --> ROUTER{Área}:::gate
-    ROUTER -->|CR| CR[Contas a Receber]:::area
-    ROUTER -->|CP| CP[Contas a Pagar]:::area
-    ROUTER -->|Fiscal| FISCAL[Fiscal]:::area
-    FISCAL --> NF[Envio NF em desenvolvimento]:::dev
-    ${CLASS_DEFS}`}
+ {id:"envio-nf",area:"FI",icon:"form",title:"Envio NF",short:"Envio NF",fields:null,status:"Em desenvolvimento",
+  summary:"Envio de Nota Fiscal pela área Fiscal. O processo ainda está em desenvolvimento.",
+  steps:[{type:"dev",title:"Em definição",sub:"Em desenvolvimento",desc:"Os campos e as aprovações do Envio NF ainda serão definidos."}],
+  rules:[],open:[]}
 ];
 
-/* ---------- loader do Mermaid com fallback de CDN ---------- */
-const MERMAID_CDNS=[
-  "mermaid.min.js", /* cópia local no próprio repo (não depende de CDN) */
-  "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",
-  "https://unpkg.com/mermaid@11/dist/mermaid.min.js",
-  "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"
-];
-function loadMermaid(i){
-  return new Promise((resolve,reject)=>{
-    if(i>=MERMAID_CDNS.length){reject(new Error("CDN"));return;}
-    const s=document.createElement("script");
-    s.src=MERMAID_CDNS[i];
-    s.onload=()=>resolve();
-    s.onerror=()=>{s.remove();loadMermaid(i+1).then(resolve,reject);};
-    document.head.appendChild(s);
+/* ---------- utilitários ---------- */
+const $=s=>document.querySelector(s);
+const view=$("#view"), nav=$("#nav");
+let cur=null, openStep=null, expandAll=false;
+const plural=(n,s,p)=>`${n} ${n===1?s:p}`;
+const approvals=p=>p.steps.filter(s=>s.type==="approval").length;
+
+/* ---------- navegação lateral ---------- */
+function renderNav(){
+  nav.innerHTML=`<a class="nav-item ${cur?"":"active"}" href="#/">${ic("layers")}<span>Visão geral</span></a>`+
+    AREAS.map(a=>`<div class="nav-sec"><span class="dot ${a.cls}"></span>${a.name}</div>`+
+      P.filter(p=>p.area===a.id).map(p=>`<a class="nav-item ${cur&&cur.id===p.id?"active":""}" href="#/${p.id}">${ic(p.icon)}<span>${p.short}</span>${p.status?'<span class="nav-tag">em dev.</span>':""}</a>`).join("")
+    ).join("");
+}
+
+/* ---------- visão geral ---------- */
+function cardHTML(p){
+  const a=AREA[p.area];
+  let chips=p.steps.filter(s=>["approval","exec","return"].includes(s.type)).map(s=>`<span class="chip k-${s.type}">${s.title}</span>`);
+  if(p.status) chips=[`<span class="chip k-dev">Em definição</span>`];
+  else if(!approvals(p)) chips.unshift(`<span class="chip muted">Sem aprovação</span>`);
+  const info=[plural(p.steps.length,"etapa","etapas"),p.fields?plural(p.fields,"campo","campos"):null].filter(Boolean).join(" · ");
+  return `<a class="proc-card" href="#/${p.id}">
+    <div class="pc-top"><span class="pc-ico ${a.cls}">${ic(p.icon)}</span>${p.status?`<span class="status">${p.status}</span>`:`<span class="area-badge ${a.cls}">${a.short}</span>`}</div>
+    <h3>${p.title}</h3><p>${p.summary}</p>
+    <div class="chain">${chips.join(ic("arrow","i chain-arrow"))}</div>
+    <div class="pc-foot"><span>${info}</span><span class="go">Ver fluxo${ic("arrow","i i-sm")}</span></div>
+  </a>`;
+}
+function renderOverview(){
+  const ativos=P.filter(p=>!p.status);
+  const dupla=ativos.filter(p=>approvals(p)===2).length;
+  const sem=ativos.filter(p=>approvals(p)===0).length;
+  const kpi=(l,v)=>`<div class="kpi"><span>${l}</span><b>${v}</b></div>`;
+  const rota=["Solicitação","Área: CR, CP ou Fiscal","Formulário do processo","Aprovações","Execução e retorno"];
+  view.innerHTML=`<div class="page"><div id="exportArea" class="export-area">
+    <header class="page-head">
+      <div class="eyebrow">ELO · Financeiro</div>
+      <h1>Fluxos Financeiros</h1>
+      <p class="lead">Como cada solicitação de Contas a Receber, Contas a Pagar e Fiscal é preenchida, aprovada e executada. Clique num processo para ver o fluxo completo.</p>
+      <div class="hero-actions no-export">
+        <button class="tbtn" data-act="present">${ic("expand","i i-sm")}<span class="lbl">Apresentar</span></button>
+        <button class="tbtn primary" id="btnPng" data-act="png">${ic("download","i i-sm")}<span class="lbl">Baixar imagem</span></button>
+      </div>
+    </header>
+    <section class="kpis">${kpi("Áreas",AREAS.length)}${kpi("Processos",P.length)}${kpi("Com 2 aprovações",dupla)}${kpi("Sem aprovação",sem)}</section>
+    <section class="route"><h2 class="sec-title">Como uma solicitação anda</h2>
+      <ol class="route-steps">${rota.map((t,i)=>`<li><span class="num">${i+1}</span>${t}</li>`).join("")}</ol></section>
+    ${AREAS.map(a=>{const ps=P.filter(p=>p.area===a.id);return `<section class="area-block">
+      <div class="area-head"><span class="area-badge ${a.cls}">${a.short}</span><h2>${a.name}</h2><span class="count">${plural(ps.length,"processo","processos")}</span></div>
+      <div class="proc-grid">${ps.map(cardHTML).join("")}</div></section>`;}).join("")}
+  </div></div>`;
+}
+
+/* ---------- página do processo ---------- */
+const conn=l=>`<div class="conn" aria-hidden="true"><span class="conn-label">${l}</span>${ic("arrow")}</div>`;
+function journeyHTML(p){
+  const out=[];
+  p.steps.forEach((s,i)=>{
+    const k=KIND[s.type], last=i===p.steps.length-1;
+    out.push(`<div class="step-wrap"><button type="button" class="step k-${s.type}" data-i="${i}" aria-expanded="false">
+      <span class="step-top"><span class="num">${i+1}</span><span class="kind">${k.label}</span></span>
+      <span class="step-ico">${ic(s.icon||k.icon)}</span>
+      <span class="step-title">${s.title}</span>
+      <span class="step-sub">${s.sub||""}</span>
+      ${last&&s.done?`<span class="step-end">${ic("check","i i-xs")}Concluído</span>`:""}
+      <span class="step-more">Detalhes${ic("chevron","i i-xs")}</span>
+    </button>${s.reject?`<div class="reject">${ic("undo","i i-xs")}<span><b>Recusado:</b> ${s.reject}</span></div>`:""}</div>`);
+    if(!last) out.push(conn(s.type==="approval"?"Aprovado":""));
   });
+  return out.join("");
+}
+function detailHTML(p,i,closable){
+  const s=p.steps[i], k=KIND[s.type], next=p.steps[i+1];
+  let body=`<p class="d-desc">${s.desc||""}</p>`;
+  if(s.groups) body+=`<div class="groups">${s.groups.map(g=>`<div class="group"><h5>${g.label}</h5><ul class="fields">${g.fields.map(f=>`<li>${ic("check","i i-xs")}<span>${f}</span></li>`).join("")}</ul></div>`).join("")}</div>`;
+  if(s.type==="approval") body+=`<div class="outcomes">
+      <div class="oc ok">${ic("check","i i-sm")}<span><b>Aprovado:</b> segue para a etapa ${i+2}${next?` (${next.title})`:""}</span></div>
+      <div class="oc bad">${ic("undo","i i-sm")}<span><b>Recusado:</b> ${s.reject}</span></div></div>`;
+  return `<article class="detail k-${s.type}" id="d${i}">
+    <header><span class="num">${i+1}</span><span class="kind">${k.label}</span><h4>${s.title}</h4>
+    ${closable?`<button type="button" class="d-close no-export" data-close="${i}" aria-label="Fechar">${ic("x","i i-sm")}</button>`:""}</header>
+    ${body}</article>`;
+}
+function renderDetails(){
+  if(!cur) return;
+  const idx=expandAll?cur.steps.map((_,i)=>i):(openStep===null?[]:[openStep]);
+  $("#details").innerHTML=idx.length?idx.map(i=>detailHTML(cur,i,!expandAll)).join(""):
+    `<div class="hint-empty no-export">${ic("search","i i-sm")}Clique em uma etapa para ver os campos e as regras.</div>`;
+  view.querySelectorAll(".step").forEach(b=>{const on=idx.includes(+b.dataset.i);b.classList.toggle("open",on);b.setAttribute("aria-expanded",String(on));});
+  const be=$("#btnExpand");
+  if(be){be.querySelector(".lbl").textContent=expandAll?"Recolher tudo":"Expandir tudo";be.classList.toggle("on",expandAll);}
+}
+function pager(p){
+  const i=P.indexOf(p), pr=P[i-1], nx=P[i+1];
+  return `<nav class="pager no-export">${pr?`<a class="pg" href="#/${pr.id}">${ic("arrow","i i-sm flip")}<span><small>Anterior</small>${pr.short}</span></a>`:"<span></span>"}${nx?`<a class="pg next" href="#/${nx.id}"><span><small>Próximo</small>${nx.short}</span>${ic("arrow","i i-sm")}</a>`:"<span></span>"}</nav>`;
+}
+function renderProcess(p){
+  const a=AREA[p.area], n=approvals(p);
+  const meta=[plural(p.steps.length,"etapa","etapas"),p.status?p.status:(n?plural(n,"aprovação","aprovações"):"Sem aprovação"),p.fields?plural(p.fields,"campo","campos"):null]
+    .filter(Boolean).map(t=>`<span class="meta-chip">${t}</span>`).join("");
+  const rules=p.rules.length?`<section class="rules"><h3>${ic("check","i i-sm")}Regras do processo</h3><ul>${p.rules.map(r=>`<li>${r}</li>`).join("")}</ul></section>`:"";
+  const open=p.open.length?`<details class="open-points"><summary>${ic("help","i i-sm")}Pontos em aberto <span class="cnt">${p.open.length}</span>${ic("chevron","i i-sm chev")}</summary><ul>${p.open.map(o=>`<li>${o}</li>`).join("")}</ul></details>`:"";
+  view.innerHTML=`<div class="page">
+    <nav class="crumbs" aria-label="Você está em"><a href="#/">Visão geral</a>${ic("chevron","i i-xs crumb-sep")}<span>${a.name}</span></nav>
+    <div id="exportArea" class="export-area">
+      <header class="page-head">
+        <div class="title-row"><span class="title-ico ${a.cls}">${ic(p.icon)}</span>
+          <div><div class="eyebrow ${a.cls}">${a.name}</div><h1>${p.title}</h1></div></div>
+        <p class="lead">${p.summary}</p>
+        <div class="meta">${meta}</div>
+      </header>
+      <div class="toolbar no-export">
+        <button type="button" class="tbtn" id="btnExpand" data-act="expand">${ic("list","i i-sm")}<span class="lbl">Expandir tudo</span></button>
+        <span class="grow"></span>
+        <button type="button" class="tbtn" data-act="present">${ic("expand","i i-sm")}<span class="lbl">Apresentar</span></button>
+        <button type="button" class="tbtn" data-act="print">${ic("printer","i i-sm")}<span class="lbl">PDF</span></button>
+        <button type="button" class="tbtn primary" id="btnPng" data-act="png">${ic("download","i i-sm")}<span class="lbl">Baixar imagem</span></button>
+      </div>
+      <section class="board">
+        <div class="journey" id="journey">${journeyHTML(p)}</div>
+        <div class="details" id="details"></div>
+      </section>
+      ${rules}
+    </div>
+    ${open}
+    ${pager(p)}
+  </div>`;
+  renderDetails();
 }
 
-const nav=document.getElementById("nav");
-const titleEl=document.getElementById("title"), crumbEl=document.getElementById("crumb");
-const pillEl=document.getElementById("pill"), descEl=document.getElementById("desc");
-const statsEl=document.getElementById("stats");
-const diagramEl=document.getElementById("diagram"), canvas=document.getElementById("canvas");
-const viewport=document.getElementById("viewport"), zoomInd=document.getElementById("zoomInd");
-
-/* nav agrupado por área */
-let lastGroup=null;
-flows.forEach((f,i)=>{if(f.group!==lastGroup){const s=document.createElement("div");s.className="nav-sec";s.textContent=f.group;nav.appendChild(s);lastGroup=f.group;}addBtn(i);});
-function addBtn(i){const f=flows[i];const b=document.createElement("button");
-  b.innerHTML=`<span class="dot" style="background:${f.dot}"></span><span>${f.title}</span>`+(f.tag?`<span class="tag ${f.tag}">${f.area}</span>`:"");
-  b.dataset.idx=i;b.onclick=()=>select(i);nav.appendChild(b);}
-
-/* zoom = tamanho real do SVG em px (sem CSS transform). O layout e o scroll
-   sempre refletem o tamanho verdadeiro, então nada fica fora da área rolável. */
-let scale=1, natW=0, natH=0;
-function apply(){
-  const svg=canvas.querySelector("svg");if(!svg||!natW)return;
-  svg.setAttribute("width",Math.round(natW*scale));
-  svg.setAttribute("height",Math.round(natH*scale));
-  zoomInd.textContent=Math.round(scale*100)+"%";
+/* ---------- fluxo cabe na largura? senão empilha (nunca corta) ---------- */
+function layoutJourney(){
+  const j=document.getElementById("journey"); if(!j) return;
+  j.classList.remove("vertical");
+  j.classList.toggle("vertical", j.scrollWidth>j.clientWidth+2);
 }
-function zoomBy(f){scale=Math.min(3,Math.max(.2,scale*f));apply();}
-/* Ajustar = encaixa pela LARGURA com tamanho mínimo legível; a altura rola */
-function fitToView(){
-  if(!natW)return;
-  const pad=80;
-  let s=(viewport.clientWidth-pad)/natW;
-  if(!isFinite(s)||s<=0)s=1;
-  scale=Math.max(.7,Math.min(1,s));
-  apply();
-  viewport.scrollTop=0;
-  viewport.scrollLeft=0;
-}
-/* Ver inteiro = mapa completo na tela (bom para visão geral; texto fica menor) */
-function showWhole(){
-  if(!natW)return;
-  const pad=80;
-  scale=Math.max(.15,Math.min(1.2,(viewport.clientWidth-pad)/natW,(viewport.clientHeight-pad)/natH));
-  apply();viewport.scrollTop=0;viewport.scrollLeft=0;
-}
-function resetView(){
-  if(!natW)return;const pad=80;
-  const whole=Math.min(1.2,(viewport.clientWidth-pad)/natW,(viewport.clientHeight-pad)/natH);
-  showWhole();
-}
-/* recalcula o viewBox a partir do desenho real + margem: garante que nenhum nó seja cortado */
-function normalizeSvg(svg){
-  const g=svg.querySelector("g");if(!g)return;
-  const bb=g.getBBox();const m=32;
-  const x=bb.x-m,y=bb.y-m,w=bb.width+2*m,h=bb.height+2*m;
-  svg.setAttribute("viewBox",`${x} ${y} ${w} ${h}`);
-  svg.removeAttribute("style");
-  svg.style.maxWidth="none";
-  natW=w;natH=h;
-}
-/* ctrl/⌘ + scroll faz zoom; scroll normal rola a página do diagrama */
-viewport.addEventListener("wheel",e=>{
-  if(e.ctrlKey||e.metaKey){e.preventDefault();zoomBy(e.deltaY<0?1.1:.9);}
-},{passive:false});
+let lastW=0;
+new ResizeObserver(e=>{const w=Math.round(e[0].contentRect.width);if(w!==lastW){lastW=w;layoutJourney();}}).observe($("#main"));
 
-/* fullscreen & export */
-function toggleFs(){const el=document.getElementById("card");if(!document.fullscreenElement)el.requestFullscreen?.();else document.exitFullscreen();}
-setTimeout(()=>document.addEventListener("fullscreenchange",()=>setTimeout(resetView,80)),0);
-function downloadSvg(){const svg=canvas.querySelector("svg");if(!svg)return;
-  const s=new XMLSerializer().serializeToString(svg);const b=new Blob([s],{type:"image/svg+xml"});
-  const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=flows[current].id+".svg";a.click();}
-function downloadPng(){const svg=canvas.querySelector("svg");if(!svg)return;
-  const W=Math.round(natW*2),H=Math.round(natH*2);
-  const clone=svg.cloneNode(true);clone.setAttribute("width",W);clone.setAttribute("height",H);
-  const s=new XMLSerializer().serializeToString(clone);
-  const img=new Image();img.onload=()=>{const c=document.createElement("canvas");c.width=W;c.height=H;
-    const ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);ctx.drawImage(img,0,0,W,H);
-    c.toBlob(bl=>{const a=document.createElement("a");a.href=URL.createObjectURL(bl);a.download=flows[current].id+".png";a.click();});};
-  img.src="data:image/svg+xml;base64,"+btoa(unescape(encodeURIComponent(s)));}
-
-/* detail */
-function hideDetail(){document.getElementById("detail").style.display="none";}
-function showDetail(label){const norm=s=>s.replace(/\s+/g,"").toLowerCase();const key=Object.keys(nodeInfo).find(k=>norm(label).includes(norm(k)));
-  const info=key?nodeInfo[key]:["•","Etapa do fluxo."];
-  document.getElementById("detailIco").textContent=info[0];
-  document.getElementById("detailTitle").textContent=label;
-  document.getElementById("detailBody").textContent=info[1];
-  document.getElementById("detail").style.display="block";}
-
-/* render */
-let counter=0,current=0;
-async function select(i){current=i;const f=flows[i];
-  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("active",+b.dataset.idx===i));
-  titleEl.textContent=f.title;crumbEl.textContent=f.crumb;descEl.textContent=f.desc;
-  if(f.tag){pillEl.textContent=f.area;pillEl.className="pill "+f.tag;pillEl.style.display="";}else pillEl.style.display="none";
-  statsEl.innerHTML=(f.stats||[]).map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
-  document.getElementById("warnBanner").style.display=f.warn?"block":"none";
-  hideDetail();
-  scale=1;natW=0;natH=0;
-  try{
-    await document.fonts.ready; // mede o texto já com a fonte final (Inter)
-    const{svg}=await mermaid.render("mmd-"+(counter++),f.code);diagramEl.innerHTML=svg;
-    const el=canvas.querySelector("svg");
-    if(el) normalizeSvg(el);
-    canvas.querySelectorAll(".node").forEach(n=>n.addEventListener("click",ev=>{ev.stopPropagation();const lb=n.querySelector("foreignObject div");showDetail(((lb&&lb.innerText)||n.textContent||"").replace(/\s*\n\s*/g," ").trim());}));
-    resetView();
-  }catch(e){diagramEl.textContent="Erro: "+e.message;}}
-window.zoomBy=zoomBy;window.resetView=resetView;window.toggleFs=toggleFs;window.downloadSvg=downloadSvg;window.downloadPng=downloadPng;window.hideDetail=hideDetail;window.showWhole=showWhole;
-window.addEventListener("resize",()=>setTimeout(resetView,60));
-
-/* inicializa só depois que o Mermaid carregar (com fallback) */
-loadMermaid(0).then(()=>{
-  mermaid.initialize({startOnLoad:false, securityLevel:"loose", ...THEME});
-  select(0);
-}).catch(()=>{
-  diagramEl.innerHTML='<div style="padding:40px;text-align:center;color:#b22a2a;font-weight:600">'+
-    'Não foi possível carregar a biblioteca de diagramas (Mermaid) a partir das CDNs.<br>'+
-    '<span style="color:#56657e;font-weight:400">Verifique a conexão de internet e recarregue a página.</span></div>';
-  titleEl.textContent=flows[0].title;
+/* ---------- interações ---------- */
+function onStep(i){
+  if(expandAll){const d=document.getElementById("d"+i);if(d){d.scrollIntoView({behavior:"smooth",block:"center"});d.classList.remove("flash");void d.offsetWidth;d.classList.add("flash");}return;}
+  openStep=openStep===i?null:i; renderDetails();
+  if(openStep!==null){const d=document.getElementById("d"+i);d&&d.scrollIntoView({behavior:"smooth",block:"nearest"});}
+}
+view.addEventListener("click",e=>{
+  const st=e.target.closest(".step"); if(st){onStep(+st.dataset.i);return;}
+  if(e.target.closest("[data-close]")){openStep=null;renderDetails();return;}
+  const act=e.target.closest("[data-act]"); if(!act) return;
+  const a=act.dataset.act;
+  if(a==="expand"){expandAll=!expandAll;openStep=null;renderDetails();}
+  else if(a==="present") togglePresent();
+  else if(a==="print") window.print();
+  else if(a==="png") exportPng();
 });
+
+/* ---------- imagem em alta resolução ---------- */
+async function snapshot(ratio){
+  const prevAll=expandAll, prevOpen=openStep;
+  if(cur){expandAll=true;renderDetails();}
+  const node=$("#exportArea"); node.classList.add("exporting"); layoutJourney();
+  try{
+    await document.fonts.ready;
+    return await htmlToImage.toPng(node,{pixelRatio:ratio||3,backgroundColor:"#f4f6fa",cacheBust:true,
+      filter:n=>!(n.classList&&n.classList.contains("no-export"))});
+  }finally{
+    node.classList.remove("exporting");
+    if(cur){expandAll=prevAll;openStep=prevOpen;renderDetails();}
+    layoutJourney();
+  }
+}
+async function exportPng(){
+  const btn=$("#btnPng"), lbl=btn.querySelector(".lbl"), old=lbl.textContent;
+  btn.disabled=true; lbl.textContent="Gerando…";
+  try{
+    const url=await snapshot(3);
+    const a=document.createElement("a"); a.href=url; a.download=`fluxo-${cur?cur.id:"visao-geral"}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+  }catch(err){alert("Não foi possível gerar a imagem: "+(err&&err.message||err));}
+  finally{btn.disabled=false; lbl.textContent=old;}
+}
+window.snapshot=snapshot;
+
+/* ---------- modo apresentação ---------- */
+function togglePresent(){
+  if(document.body.classList.contains("present")){document.fullscreenElement?document.exitFullscreen():document.body.classList.remove("present");return;}
+  document.body.classList.add("present");
+  document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});
+  setTimeout(layoutJourney,80);
+}
+document.addEventListener("fullscreenchange",()=>{if(!document.fullscreenElement)document.body.classList.remove("present");setTimeout(layoutJourney,80);});
+document.addEventListener("keydown",e=>{
+  if(!document.body.classList.contains("present")) return;
+  if(e.key==="Escape"){document.body.classList.remove("present");setTimeout(layoutJourney,80);return;}
+  const i=cur?P.indexOf(cur):-1;
+  if(e.key==="ArrowRight"&&i<P.length-1) location.hash="#/"+P[i+1].id;
+  if(e.key==="ArrowLeft"){if(i>0) location.hash="#/"+P[i-1].id; else if(i===0) location.hash="#/";}
+});
+
+/* ---------- PDF: imprime com tudo expandido ---------- */
+let printPrev=null;
+window.addEventListener("beforeprint",()=>{if(cur){printPrev=[expandAll,openStep];expandAll=true;renderDetails();}});
+window.addEventListener("afterprint",()=>{if(cur&&printPrev){[expandAll,openStep]=printPrev;printPrev=null;renderDetails();}});
+
+/* ---------- rotas ---------- */
+function route(){
+  const id=(location.hash.match(/^#\/([\w-]+)/)||[])[1];
+  cur=P.find(x=>x.id===id)||null; openStep=null; expandAll=false;
+  cur?renderProcess(cur):renderOverview();
+  renderNav();
+  document.title=cur?`${cur.title} · Fluxos Financeiros ELO`:"Fluxos Financeiros · ELO";
+  window.scrollTo(0,0);
+  requestAnimationFrame(layoutJourney);
+}
+window.addEventListener("hashchange",route);
+if(document.fonts) document.fonts.ready.then(layoutJourney);
+route();
 </script>
 </body>
 </html>
