@@ -84,11 +84,11 @@
       var(--card);
     border:1px solid var(--line);border-radius:var(--radius);height:100%;min-height:440px;
     position:relative;overflow:hidden;box-shadow:var(--shadow)}
-  #viewport{width:100%;height:100%;overflow:auto;display:flex;align-items:flex-start;justify-content:center}
+  #viewport{position:absolute;inset:0;overflow:auto}
   #viewport::-webkit-scrollbar{width:10px;height:10px}
   #viewport::-webkit-scrollbar-thumb{background:#c3d0e4;border-radius:10px}
-  #canvas{transform-origin:top center;padding:30px;flex:none}
-  #canvas svg{display:block;height:auto!important;max-width:none!important}
+  #canvas{width:max-content;margin:0 auto;padding:40px}
+  #canvas svg{display:block;max-width:none!important;overflow:visible}
   .mermaid{margin:0}
   .node{cursor:pointer;transition:.15s}
   .node:hover{filter:drop-shadow(0 4px 10px rgba(14,163,113,.35))}
@@ -161,7 +161,7 @@
       <div class="diagram-card" id="card">
         <div id="viewport"><div id="canvas"><pre class="mermaid" id="diagram"></pre></div></div>
         <div class="zoom-ind" id="zoomInd">100%</div>
-        <div class="hint">Role para navegar · Ctrl+scroll para zoom · clique num nó</div>
+        <div class="hint">Role para navegar · Ctrl+scroll ou ＋/－ para zoom · clique num nó</div>
         <div id="detail">
           <span class="close" onclick="hideDetail()">✕</span>
           <div class="ico" id="detailIco">•</div>
@@ -392,6 +392,7 @@ const flows=[
 
 /* ---------- loader do Mermaid com fallback de CDN ---------- */
 const MERMAID_CDNS=[
+  "mermaid.min.js", /* cópia local no próprio repo (não depende de CDN) */
   "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js",
   "https://unpkg.com/mermaid@11/dist/mermaid.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.4.1/mermaid.min.js"
@@ -423,25 +424,38 @@ function addBtn(i){const f=flows[i];const b=document.createElement("button");
   b.innerHTML=`<span class="dot" style="background:${f.dot}"></span><span>${f.title}</span>`+(f.tag?`<span class="tag ${f.tag}">${f.area}</span>`:"");
   b.dataset.idx=i;b.onclick=()=>select(i);nav.appendChild(b);}
 
-/* zoom simples: escala o canvas; o scroll natural do viewport cuida do overflow — NADA é cortado */
-let scale=1, baseW=0;
+/* zoom = tamanho real do SVG em px (sem CSS transform). O layout e o scroll
+   sempre refletem o tamanho verdadeiro, então nada fica fora da área rolável. */
+let scale=1, natW=0, natH=0;
 function apply(){
-  canvas.style.transform="scale("+scale+")";
+  const svg=canvas.querySelector("svg");if(!svg||!natW)return;
+  svg.setAttribute("width",Math.round(natW*scale));
+  svg.setAttribute("height",Math.round(natH*scale));
   zoomInd.textContent=Math.round(scale*100)+"%";
 }
-function zoomBy(f){scale=Math.min(3,Math.max(.3,scale*f));apply();}
-/* Ajustar = escala para o diagrama caber na LARGURA visível (altura rola) */
+function zoomBy(f){scale=Math.min(3,Math.max(.2,scale*f));apply();}
+/* Ajustar = diagrama inteiro visível (largura E altura) */
 function fitToView(){
-  const svg=canvas.querySelector("svg");if(!svg)return;
-  // largura natural do conteúdo (SVG + padding do canvas)
-  const cw=canvas.scrollWidth/scale;           // largura real do canvas sem escala
-  const avail=viewport.clientWidth-8;
-  scale=Math.min(1.3, Math.max(.3, avail/cw));
+  if(!natW)return;
+  const pad=80;
+  const sw=(viewport.clientWidth-pad)/natW, sh=(viewport.clientHeight-pad)/natH;
+  scale=Math.min(1.2,sw,sh);
   if(!isFinite(scale)||scale<=0)scale=1;
+  scale=Math.max(.2,scale);
   apply();
-  viewport.scrollTop=0;
+  viewport.scrollTop=0;viewport.scrollLeft=0;
 }
-function resetView(){scale=1;apply();fitToView();}
+function resetView(){fitToView();}
+/* recalcula o viewBox a partir do desenho real + margem: garante que nenhum nó seja cortado */
+function normalizeSvg(svg){
+  const g=svg.querySelector("g");if(!g)return;
+  const bb=g.getBBox();const m=32;
+  const x=bb.x-m,y=bb.y-m,w=bb.width+2*m,h=bb.height+2*m;
+  svg.setAttribute("viewBox",`${x} ${y} ${w} ${h}`);
+  svg.removeAttribute("style");
+  svg.style.maxWidth="none";
+  natW=w;natH=h;
+}
 /* ctrl/⌘ + scroll faz zoom; scroll normal rola a página do diagrama */
 viewport.addEventListener("wheel",e=>{
   if(e.ctrlKey||e.metaKey){e.preventDefault();zoomBy(e.deltaY<0?1.1:.9);}
@@ -454,8 +468,9 @@ function downloadSvg(){const svg=canvas.querySelector("svg");if(!svg)return;
   const s=new XMLSerializer().serializeToString(svg);const b=new Blob([s],{type:"image/svg+xml"});
   const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=flows[current].id+".svg";a.click();}
 function downloadPng(){const svg=canvas.querySelector("svg");if(!svg)return;
-  const vb=svg.viewBox.baseVal;const W=(vb.width||svg.clientWidth)*2,H=(vb.height||svg.clientHeight)*2;
-  const s=new XMLSerializer().serializeToString(svg);
+  const W=Math.round(natW*2),H=Math.round(natH*2);
+  const clone=svg.cloneNode(true);clone.setAttribute("width",W);clone.setAttribute("height",H);
+  const s=new XMLSerializer().serializeToString(clone);
   const img=new Image();img.onload=()=>{const c=document.createElement("canvas");c.width=W;c.height=H;
     const ctx=c.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,W,H);ctx.drawImage(img,0,0,W,H);
     c.toBlob(bl=>{const a=document.createElement("a");a.href=URL.createObjectURL(bl);a.download=flows[current].id+".png";a.click();});};
@@ -479,18 +494,14 @@ async function select(i){current=i;const f=flows[i];
   statsEl.innerHTML=(f.stats||[]).map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
   document.getElementById("warnBanner").style.display=f.warn?"block":"none";
   hideDetail();
-  scale=1;canvas.style.transform="scale(1)";
-  try{const{svg}=await mermaid.render("mmd-"+(counter++),f.code);diagramEl.innerHTML=svg;
+  scale=1;natW=0;natH=0;
+  try{
+    await document.fonts.ready; // mede o texto já com a fonte final (Inter)
+    const{svg}=await mermaid.render("mmd-"+(counter++),f.code);diagramEl.innerHTML=svg;
     const el=canvas.querySelector("svg");
-    if(el){
-      // fixa a largura natural do SVG (em px) para o scroll medir certo e não cortar
-      const vb=el.viewBox&&el.viewBox.baseVal;
-      const w=vb&&vb.width?vb.width:(el.getBBox?el.getBBox().width:el.clientWidth);
-      el.removeAttribute("height");
-      el.style.width=w+"px";el.style.maxWidth="none";el.style.height="auto";
-    }
+    if(el) normalizeSvg(el);
     canvas.querySelectorAll(".node").forEach(n=>n.addEventListener("click",ev=>{ev.stopPropagation();showDetail((n.textContent||"").trim());}));
-    requestAnimationFrame(()=>requestAnimationFrame(()=>fitToView()));
+    fitToView();
   }catch(e){diagramEl.textContent="Erro: "+e.message;}}
 window.zoomBy=zoomBy;window.resetView=resetView;window.toggleFs=toggleFs;window.downloadSvg=downloadSvg;window.downloadPng=downloadPng;window.hideDetail=hideDetail;
 window.addEventListener("resize",()=>setTimeout(fitToView,60));
