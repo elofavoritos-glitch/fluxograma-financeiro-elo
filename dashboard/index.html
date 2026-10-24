@@ -226,7 +226,7 @@ const flows=[
  {id:"todos",title:"Visão consolidada",crumb:"Visão consolidada",area:"ALL",tag:"all",dot:"#94a3b8",
   desc:"O processo inteiro num só mapa: da solicitação ao roteamento por área, passando por formulários, alçadas de aprovação e execução.",
   stats:[["Áreas","3"],["Processos","6"],["Alçadas","até 2"]],
-  code:`flowchart TD
+  code:`flowchart LR
     START((Solicitação)):::start --> ROUTER{Área}:::gate
     ROUTER -->|CR| CR[Contas a Receber]:::area
     ROUTER -->|CP| CP[Contas a Pagar]:::area
@@ -271,7 +271,7 @@ const flows=[
  {id:"alteracao",title:"Alteração de Vencimento / Prazo",crumb:"Alteração Venc./Prazo",area:"CR",tag:"cr",dot:"#0ea371",
   desc:"Alteração da data de vencimento ou do prazo de um título, com dupla aprovação (Gestor/Região e Financeiro).",
   stats:[["Campos","5"],["Alçadas","2"]],
-  code:`flowchart TD
+  code:`flowchart LR
     START((Início)):::start --> TIPO[Alteração Venc./Prazo]:::proc
     TIPO --> FORM${F_CR()}:::form
     FORM --> AP1{Aprovação<br/>Gestor / Região}:::gate
@@ -285,7 +285,7 @@ const flows=[
  {id:"desconto",title:"Desconto / Crédito",crumb:"Desconto / Crédito",area:"CR",tag:"cr",dot:"#0ea371",warn:true,
   desc:"Concessão de desconto ou geração de crédito, com escolha entre valor em R$ ou percentual e dupla aprovação.",
   stats:[["Campos","8"],["Alçadas","2"]],
-  code:`flowchart TD
+  code:`flowchart LR
     START((Início)):::start --> RAMO{Tipo}:::gate
     RAMO -->|Desconto| DESC[Desconto]:::proc
     RAMO -->|Crédito| CRED[Crédito]:::proc
@@ -305,7 +305,7 @@ const flows=[
  {id:"reembolso",title:"Reembolso Viagem",crumb:"Reembolso Viagem",area:"CR",tag:"cr",dot:"#0ea371",warn:true,
   desc:"Reembolso de despesas de viagem. Compartilha o formulário com Solicitação de Pagamento e Cancelamento RPA.",
   stats:[["Campos","8"],["Alçadas","1"]],
-  code:`flowchart TD
+  code:`flowchart LR
     START((Início)):::start --> RAMO{Tipo de<br/>solicitação}:::gate
     RAMO -->|Reembolso| REEMB[Reembolso Viagem]:::proc
     RAMO -->|Solicitação Pagto| SOLIC[Solicitação Pagamento]:::proc
@@ -323,7 +323,7 @@ const flows=[
  {id:"solicitacao",title:"Solicitação de Pagamento Complementar",crumb:"Solic. Pagamento",area:"CP",tag:"cp",dot:"#2563eb",
   desc:"Pagamento complementar (Contas a Pagar). Usa o mesmo formulário de Reembolso e Cancelamento RPA.",
   stats:[["Campos","8"],["Alçadas","1"]],
-  code:`flowchart TD
+  code:`flowchart LR
     START((Início)):::start --> SOLIC[Solicitação Pagto Complementar]:::proc
     SOLIC --> FORM${F_PG}:::form
     FORM --> AG{Aprovação<br/>Gestor}:::gate
@@ -335,7 +335,7 @@ const flows=[
  {id:"cancelamento",title:"Cancelamento RPA",crumb:"Cancelamento RPA",area:"CR",tag:"cr",dot:"#0ea371",
   desc:"Cancelamento de Recibo de Pagamento a Autônomo. Compartilha formulário e aprovação com Reembolso e Solicitação de Pagamento.",
   stats:[["Campos","8"],["Alçadas","1"]],
-  code:`flowchart TD
+  code:`flowchart LR
     START((Início)):::start --> CANC[Cancelamento RPA]:::proc
     CANC --> FORM${F_PG}:::form
     FORM --> AG{Aprovação<br/>Gestor}:::gate
