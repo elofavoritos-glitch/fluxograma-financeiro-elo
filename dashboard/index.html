@@ -421,7 +421,7 @@ function showWhole(){
 function resetView(){
   if(!natW)return;const pad=80;
   const whole=Math.min(1.2,(viewport.clientWidth-pad)/natW,(viewport.clientHeight-pad)/natH);
-  if(whole>=.4){showWhole();}else{fitToView();}
+  showWhole();
 }
 /* recalcula o viewBox a partir do desenho real + margem: garante que nenhum nó seja cortado */
 function normalizeSvg(svg){
