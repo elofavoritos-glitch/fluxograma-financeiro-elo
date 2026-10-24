@@ -84,10 +84,10 @@
       var(--card);
     border:1px solid var(--line);border-radius:var(--radius);height:100%;min-height:440px;
     position:relative;overflow:hidden;box-shadow:var(--shadow)}
-  #viewport{position:absolute;inset:0;overflow:auto}
+  #viewport{position:absolute;inset:0;overflow:auto;display:flex}
   #viewport::-webkit-scrollbar{width:10px;height:10px}
   #viewport::-webkit-scrollbar-thumb{background:#c3d0e4;border-radius:10px}
-  #canvas{width:max-content;margin:0 auto;padding:40px}
+  #canvas{width:max-content;margin:auto;padding:40px;flex:none}
   #canvas svg{display:block;max-width:none!important;overflow:visible}
   .mermaid{margin:0}
   .node{cursor:pointer;transition:.15s}
