@@ -1,0 +1,78 @@
+EXPORT DE MEMÓRIAS
+Gerado em: 2026-10-24
+
+Observações:
+- As memórias armazenadas não têm data por entrada. Entradas marcadas "(sem data
+  registrada)" não têm data real; as datas 2026-10-24 referem-se a esta conversa.
+- Só havia memórias armazenadas para Instruções, Projetos e Preferências.
+  Identidade e Carreira não têm nada armazenado.
+
+================================================================
+1. INSTRUÇÕES
+================================================================
+2026-10-24 - NUNCA usar a ferramenta browser_run_code_unsafe do Playwright. Para o
+usuário ela aparece como "Browser run code unsafe · playwright/playwright", irrita
+muito e já travou 15 min várias vezes. Para testar páginas usar só browser_navigate,
+browser_resize, browser_evaluate (verificações dentro da página) e
+browser_take_screenshot. Para evitar cache, usar ?v=<timestamp> na URL e conferir a
+versão via evaluate. Também dá para checar por terminal (curl/node). Fazer o mínimo
+possível de chamadas de navegador.
+
+(sem data registrada) - Ao gerar imagens, mockups, screenshots ou qualquer artefato
+visual, sempre exibi-los diretamente no chat (inline) para que o usuário possa salvar
+com "Salvar imagem como...". O usuário está no navegador e prefere baixar artefatos
+diretamente da conversa, pois não tem acesso fácil ao sistema de arquivos do sandbox.
+Priorizar essa abordagem em vez de apenas apontar caminhos de arquivo ou o explorador
+de arquivos.
+
+(sem data registrada) - Nunca registrar valores completos de segredos em arquivos
+versionados — chaves vivem só em env vars (Vercel/Supabase).
+
+================================================================
+2. IDENTIDADE
+================================================================
+(nenhuma memória armazenada sobre nome, idade, localização, educação, família,
+relacionamentos, idiomas ou interesses pessoais)
+
+================================================================
+3. CARREIRA
+================================================================
+(nenhuma memória armazenada)
+
+================================================================
+4. PROJETOS
+================================================================
+(sem data registrada) - Painel Comercial da ELO (repo elofavoritos-glitch) — Há
+credenciais expostas em chat que PRECISAM ser rotacionadas pelo usuário; pendência de
+segurança ativa, o usuário pediu explicitamente para não esquecer. PRIORIDADE ALTA:
+chave Econodata API v4 (prefixo ek_live_klX…, ~3 milhões de tokens = valor financeiro
+real). Também pendentes: chave Logcomex (dwgUXr…), senha do banco Supabase (8uF…) e
+chave Google Cloud TTS (AIzaSy…). O checklist está versionado em
+web_app_nextjs/SEGURANCA_PENDENCIAS.md.
+
+2026-10-24 - Fluxograma Financeiro ELO (repo elofavoritos-glitch/fluxograma-financeiro-elo)
+— Dashboard HTML dos processos financeiros da ELO (CR/CP/Fiscal), publicada via GitHub
+Pages em https://elofavoritos-glitch.github.io/fluxograma-financeiro-elo/dashboard/.
+7 processos (Alteração de Vencimento/Prazo, Desconto Comercial, Crédito, Reembolso
+Viagem, Pagamento Complementar de Frete, Cancelamento RPA, Envio NF). Interface com
+etapas em cartões, clicar/expandir, fonte Plus Jakarta Sans e html-to-image embutidos
+no repo, exportar PNG em alta resolução, modo apresentação e PDF. Status: concluída e
+testada (desktop, apresentar, PDF, celular). Uma dúvida em aberto: o que vem depois de
+"Usuário executa" no caminho Cadastro da Alteração de Vencimento.
+
+2026-10-24 - Próximo projeto (ainda não iniciado) — App de fluxos editável, "como
+aplicativo", onde se abrem caixas e tudo é editável no fluxo. Requisitos e repositório
+ainda a definir.
+
+================================================================
+5. PREFERÊNCIAS
+================================================================
+(sem data registrada) - Está no navegador (Kiro Web) e prefere baixar artefatos direto
+da conversa; não tem acesso fácil ao filesystem do sandbox.
+
+2026-10-24 - Exige resultado visível, claro e sem cortes; rejeita interface "amadora";
+valoriza fonte melhor, imagens de qualidade e capacidade de clicar e expandir. Quer que
+tudo seja salvo e publicado antes de seguir adiante.
+
+2026-10-24 - Comunica-se em português (Brasil), de forma direta e informal; demonstra
+forte impaciência com comandos que falham ou demoram.
