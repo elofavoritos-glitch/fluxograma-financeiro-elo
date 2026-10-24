@@ -1,6 +1,6 @@
 # Reembolso Viagem (CP)
 
-Despesas lançadas **uma a uma**, cada uma com o comprovante anexado.
+Despesas lançadas **uma a uma**, cada uma com o comprovante anexado. A solicitação pode ser cancelada antes da conclusão.
 
 ```mermaid
 flowchart LR
@@ -13,8 +13,8 @@ flowchart LR
     T1 & T2 & T3 & T4 --> PG["Dados de pagamento: PIX ou Conta corrente"]
     PG --> AP1{Aprovação Gestor imediato}
     AP1 -->|Aprovado| AP2{Aprovação Financeiro}
-    AP1 -->|Reprovado| REP((Reprovado))
+    AP1 -->|Reprovado| VOLTA[Volta ao solicitante]
     AP2 -->|Aprovado| USR[Usuário]
-    AP2 -->|Reprovado| REP
+    AP2 -->|Reprovado| VOLTA
     USR --> FIM((Concluído))
 ```

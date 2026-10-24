@@ -308,7 +308,6 @@ const KIND={
   return:{label:"Retorno",icon:"send"},
   dev:{label:"Em definição",icon:"clock"}
 };
-const REPROVA="O que acontece na reprovação? Hoje está como “solicitação reprovada”. Deve voltar ao solicitante, como na Alteração de Vencimento?";
 
 const P=[
  {id:"alteracao",area:"CR",icon:"calendar",title:"Alteração de Vencimento / Prazo",short:"Alteração de Vencimento",fields:6,
@@ -331,12 +330,12 @@ const P=[
    {type:"form",title:"Formulário",sub:"7 campos",desc:"Dados do título e do desconto pedido.",
     groups:[{label:"Título e cliente",fields:["Título","Cód. Cliente","Valor original","Regional"]},
             {label:"Desconto",fields:["Valor do desconto (R$) ou % de desconto","Motivo","Justificativa"]}]},
-   {type:"approval",title:"Gerente",sub:"1ª aprovação",desc:"O gerente avalia o desconto.",reject:"solicitação reprovada"},
-   {type:"approval",title:"Financeiro",sub:"2ª aprovação",desc:"O Financeiro faz a validação final.",reject:"solicitação reprovada"},
+   {type:"approval",title:"Gerente",sub:"1ª aprovação",desc:"O gerente avalia o desconto.",reject:"volta ao solicitante"},
+   {type:"approval",title:"Financeiro",sub:"2ª aprovação",desc:"O Financeiro faz a validação final.",reject:"volta ao solicitante"},
    {type:"exec",title:"Usuário executa",sub:"Equipe de CR",desc:"O desconto aprovado é aplicado no título.",done:true}
   ],
   rules:["O desconto é informado em R$ ou em percentual."],
-  open:[REPROVA]},
+  open:[]},
 
  {id:"credito",area:"CR",icon:"banknote",title:"Crédito",short:"Crédito",fields:2,
   summary:"Pedido de crédito para o cliente. Não passa por aprovação: o usuário analisa e responde.",
@@ -354,12 +353,12 @@ const P=[
    {type:"form",icon:"receipt",title:"Despesas",sub:"Uma a uma, com comprovante",desc:"Cada despesa é lançada separadamente, com o comprovante anexado.",
     groups:[{label:"Tipos de despesa",fields:["Refeição: descrição e valor (R$)","Hospedagem: descrição e valor (R$)","Passagem","Deslocamento: Uber/Táxi ou quilometragem"]}]},
    {type:"form",icon:"card",title:"Dados de pagamento",sub:"Conta do reembolso",desc:"Para onde o valor do reembolso será pago.",groups:[{label:"Opções",fields:["PIX","Conta corrente"]}]},
-   {type:"approval",title:"Gestor imediato",sub:"1ª aprovação",desc:"O gestor imediato de quem viajou avalia as despesas.",reject:"solicitação reprovada"},
-   {type:"approval",title:"Financeiro",sub:"2ª aprovação",desc:"O Financeiro faz a validação final.",reject:"solicitação reprovada"},
+   {type:"approval",title:"Gestor imediato",sub:"1ª aprovação",desc:"O gestor imediato de quem viajou avalia as despesas.",reject:"volta ao solicitante"},
+   {type:"approval",title:"Financeiro",sub:"2ª aprovação",desc:"O Financeiro faz a validação final.",reject:"volta ao solicitante"},
    {type:"exec",title:"Usuário executa",sub:"Equipe de CP",desc:"O reembolso aprovado é pago.",done:true}
   ],
-  rules:["Cada despesa é lançada separadamente, com o comprovante anexado.","Deslocamento pode ser por Uber/Táxi ou por quilometragem."],
-  open:["A seta que volta do fim para o início significa “adicionar mais despesas”?","Em “Dados de pagamento (PIX / CC / ...)”, qual é a terceira opção?",REPROVA]},
+  rules:["Cada despesa é lançada separadamente, com o comprovante anexado.","Deslocamento pode ser por Uber/Táxi ou por quilometragem.","A solicitação pode ser cancelada antes da conclusão."],
+  open:[]},
 
  {id:"pagamento",area:"CP",icon:"truck",title:"Pagamento Complementar de Frete",short:"Pagto Complementar de Frete",fields:8,
   summary:"Pagamento complementar de frete a fornecedor, com aprovação do gestor.",
@@ -367,19 +366,19 @@ const P=[
    {type:"form",title:"Formulário",sub:"8 campos",desc:"Dados do fornecedor, do frete e do pagamento.",
     groups:[{label:"Fornecedor e pedido",fields:["Cód. Fornecedor","Tipo (lista)","Motivo (lista)","Descrição"]},
             {label:"Frete e pagamento",fields:["Ficha de viagem","CTe","Região","Dados de pagamento"]}]},
-   {type:"approval",title:"Gestor",sub:"Aprovação única",desc:"O gestor avalia o pagamento.",reject:"solicitação reprovada"},
+   {type:"approval",title:"Gestor",sub:"Aprovação única",desc:"O gestor avalia o pagamento.",reject:"volta ao solicitante"},
    {type:"exec",title:"Usuário executa",sub:"Equipe de CP",desc:"O pagamento aprovado é feito.",done:true}
   ],
-  rules:[],open:[REPROVA]},
+  rules:[],open:[]},
 
  {id:"cancelamento",area:"CP",icon:"filex",title:"Cancelamento RPA",short:"Cancelamento RPA",fields:5,
   summary:"Cancelamento de Recibo de Pagamento a Autônomo, com aprovação da região.",
   steps:[
    {type:"form",title:"Formulário",sub:"5 campos",desc:"Motivo do cancelamento e dados da viagem.",groups:[{label:"Campos",fields:["Motivo","Descrição","Ficha de viagem","CTe","Região"]}]},
-   {type:"approval",title:"Região",sub:"Aprovação única",desc:"O responsável pela região avalia o cancelamento.",reject:"solicitação reprovada"},
+   {type:"approval",title:"Região",sub:"Aprovação única",desc:"O responsável pela região avalia o cancelamento.",reject:"volta ao solicitante"},
    {type:"exec",title:"Usuário executa",sub:"Equipe de CP",desc:"O RPA é cancelado.",done:true}
   ],
-  rules:[],open:[REPROVA]},
+  rules:[],open:[]},
 
  {id:"envio-nf",area:"FI",icon:"form",title:"Envio NF",short:"Envio NF",fields:null,status:"Em desenvolvimento",
   summary:"Envio de Nota Fiscal pela área Fiscal. O processo ainda está em desenvolvimento.",

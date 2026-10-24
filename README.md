@@ -39,10 +39,7 @@ formalizados em [Mermaid](https://mermaid.js.org/). Os diagramas renderizam dire
 
 ## Dúvidas pendentes (rever depois)
 
-- [ ] **Reembolso Viagem:** a seta que volta do fim para o início significa "adicionar mais despesas"?
-- [ ] **Reembolso Viagem:** em "Dados de pagamento (PIX / CC / ...)", qual é a terceira opção?
 - [ ] **Alteração de Vencimento (Cadastro):** o que vem depois de "Usuário executa" (anotação parecida com "OK por aviso")?
-- [ ] **Desconto, Reembolso, Pagto Complementar e Cancelamento RPA:** as anotações não dizem o que acontece na reprovação. Hoje está "Reprovado". Deve voltar ao solicitante, como na Alteração?
 
 > Os fluxogramas foram interpretados a partir das fotos do quadro e das anotações do caderno. Alguns campos
 > podem precisar de ajuste fino — revise e me avise as correções.
