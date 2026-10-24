@@ -1,35 +1,16 @@
-# Desconto / Crédito — CR
+# Desconto Comercial (CR)
 
-Concessão de desconto ou geração de crédito sobre títulos de Contas a Receber.
-Fluxo com dupla aprovação (Gestor/Região e Financeiro).
+Desconto em R$ **ou** em %, com dupla aprovação.
 
 ```mermaid
-flowchart TD
-    START((Início)) --> RAMO{Tipo}
-    RAMO -->|Alteração Vencimento| ALT[Alteração Vencimento]
-    RAMO -->|Desconto / Cálculo| DESC[Desconto]
-    RAMO -->|Crédito| CRED[Crédito]
-
-    DESC --> FORM[Formulário]
-    CRED --> FORM
-
-    FORM --> F1[Título]
-    FORM --> F2[Cód. Cliente]
-    FORM --> F3[Motivo]
-    FORM --> F4[Justificativa]
-    FORM --> VAL{Valor do desconto}
-    VAL -->|ou| V1[Valor Desc.]
-    VAL -->|ou| V2[% Desc.]
-    FORM --> F5[Valor Original]
-    FORM --> F6[Regional]
-
-    F1 & F2 & F3 & F4 & V1 & V2 & F5 & F6 --> APROV1{Aprovação Gestor / Região}
-    APROV1 -->|Aprovado| APROV2{Aprovação Financeiro}
-    APROV1 -->|Reprovado| FIM_REP((Reprovado))
-    APROV2 -->|Aprovado| USER[Usuário gera desconto/crédito]
-    APROV2 -->|Reprovado| FIM_REP
-    USER --> FIM((Concluído))
-    FORM -->|variação| ITEM[Item / Título + Ano Fiscal]
-    ITEM --> AX1{Aprovação 1}
-    AX1 -->|Aprovado| AX2{Aprovação 2}
+flowchart LR
+    START((Início)) --> FORM["Formulário: Título, Cód. Cliente, Motivo, Justificativa, Valor Desc. (R$) ou % Desc., Valor Original, Regional"]
+    FORM --> AP1{Aprovação Gerente}
+    AP1 -->|Aprovado| AP2{Aprovação Financeiro}
+    AP1 -->|Reprovado| REP((Reprovado))
+    AP2 -->|Aprovado| USR[Usuário executa]
+    AP2 -->|Reprovado| REP
+    USR --> FIM((Concluído))
 ```
+
+O **Crédito** virou um fluxo próprio: [07-credito.md](07-credito.md).

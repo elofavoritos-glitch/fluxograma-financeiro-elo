@@ -1,22 +1,20 @@
-# Alteração de Vencimento / Prazo — CR
+# Alteração de Vencimento / Prazo (CR)
 
-Alteração da data de vencimento ou do prazo de um título de Contas a Receber.
+Dois caminhos: **com faturamento** (formulário completo) ou **cadastro** (item: título + novo prazo, mesmo fluxo).
+Se reprovada em qualquer alçada, volta ao solicitante.
+
+> Anotação: prever mais de um título por solicitação.
 
 ```mermaid
-flowchart TD
-    START((Início)) --> TIPO[Alteração Vencimento / Prazo]
-
-    TIPO --> FORM[Formulário]
-    FORM --> F1[Título]
-    FORM --> F2[Cód. Cliente]
-    FORM --> F3[Motivo]
-    FORM --> F4[Justificativa]
-    FORM --> F5[Regional]
-
-    F1 & F2 & F3 & F4 & F5 --> APROV1{Aprovação Gestor / Região}
-    APROV1 -->|Aprovado| APROV2{Aprovação Financeiro}
-    APROV1 -->|Reprovado| FIM_REP((Reprovado))
-    APROV2 -->|Aprovado| USER[Usuário executa alteração]
-    APROV2 -->|Reprovado| FIM_REP
-    USER --> FIM((Concluído))
+flowchart LR
+    START((Início)) --> TIPO{Tipo de alteração}
+    TIPO -->|Com faturamento| FORM["Formulário: Título, Cód. Cliente, Motivo (pré-definido), Justificativa (texto), Nova data, Região"]
+    TIPO -->|Cadastro| ITEM["Item: Título + Novo prazo"]
+    FORM --> AP1{Aprovação Gerente Regional}
+    ITEM --> AP1
+    AP1 -->|Aprovado| AP2{Aprovação Financeiro}
+    AP2 -->|Aprovado| USR[Usuário executa]
+    USR --> FIM((Concluído))
+    AP1 -->|Reprovado| VOLTA[Volta ao solicitante]
+    AP2 -->|Reprovado| VOLTA
 ```

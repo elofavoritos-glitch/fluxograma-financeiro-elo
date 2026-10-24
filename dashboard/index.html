@@ -127,7 +127,7 @@
     </div>
     <div class="side-foot">
       CR · Contas a Receber &nbsp;|&nbsp; CP · Contas a Pagar<br/>
-      Interpretado dos quadros de planejamento.
+      Baseado no quadro e nas anotações de planejamento.
     </div>
   </aside>
 
@@ -201,130 +201,146 @@ const CLASS_DEFS = `
 `;
 
 const nodeInfo = {
-  "Contas a Receber":["💰","Área CR. Processos: Alteração de Vencimento, Desconto/Crédito, Reembolso Viagem e Cancelamento RPA."],
-  "Contas a Pagar":["💳","Área CP. Processo: Solicitação de Pagamento Complementar."],
-  "Fiscal":["🧾","Área Fiscal: Envio de Nota Fiscal (em desenvolvimento)."],
-  "Aprovação Gestor":["✅","Aprovação do gestor responsável antes da execução."],
-  "Aprovação Gestor / Região":["✅","Primeira alçada: gestor ou responsável regional."],
+  "Gerente Regional":["✅","Primeira alçada: gerente da região."],
+  "Gestor imediato":["✅","Primeira alçada do reembolso: gestor imediato de quem viajou."],
+  "Aprovação Região":["✅","Alçada única: responsável pela região."],
+  "Aprovação Gerente":["✅","Primeira alçada: gerente."],
+  "Aprovação Gestor":["✅","Alçada única: gestor responsável."],
   "Aprovação Financeiro":["✅","Segunda alçada: validação final do Financeiro."],
-  "Formulário":["📝","Campos preenchidos pelo solicitante."],
-  "Valor do desconto":["🔀","Informar OU valor em R$ OU percentual."],
+  "Volta ao solicitante":["↩️","Se reprovada em qualquer alçada, a solicitação volta para o solicitante."],
   "Reprovado":["⛔","Solicitação recusada em alguma alçada."],
-  "Concluído":["🏁","Processo finalizado com sucesso."],
+  "Concluído":["🏁","Processo finalizado."],
+  "Contas a Receber":["💰","Área CR: Alteração de Vencimento/Prazo, Desconto Comercial e Crédito."],
+  "Contas a Pagar":["💳","Área CP: Reembolso Viagem, Pagamento Complementar de Frete e Cancelamento RPA."],
   "Envio NF":["🧾","Processo fiscal em definição."],
-  "Validação":["✔️","Validação após a aprovação do gestor, antes da execução pelo usuário."],
-  "Item / Título":["📄","Variação por item/título com ano fiscal, com duas alçadas de aprovação."],
-  "Aprovação 1":["✅","Primeira alçada da variação por item/título."],
-  "Aprovação 2":["✅","Segunda alçada da variação por item/título."]
+  "Fiscal":["🧾","Área Fiscal: Envio de Nota Fiscal (em desenvolvimento)."],
+  "Dados da viagem":["🧳","Data da viagem, origem, destino e motivo."],
+  "Despesas":["🧾","Lançadas uma a uma, cada uma com o comprovante anexado."],
+  "Deslocamento":["🚕","Uber/Táxi ou quilometragem rodada."],
+  "Dados de pagamento":["🏦","Conta para receber o reembolso: PIX ou conta corrente."],
+  "Item":["📄","Alteração via Cadastro: informa o título e o novo prazo. Segue o mesmo fluxo de aprovação."],
+  "Usuário analisa":["👤","O Crédito não passa por alçada: o usuário analisa e responde."],
+  "Resposta":["💬","Retorno ao solicitante."],
+  "Formulário":["📝","Campos preenchidos pelo solicitante."],
+  "Usuário":["👤","Execução pela equipe responsável."]
 };
 
 /* ---------- fluxos ---------- */
-const F_CR = (extra) => `["<b>Formulário</b><br/>Título · Cód. Cliente<br/>Motivo · Justificativa${extra||""}<br/>Regional"]`;
-const F_PG = `["<b>Formulário</b><br/>Cód. Fornecedor · Tipo · Motivo<br/>Descrição · Ficha Viagem · CTE<br/>Região · Dados Pagamento"]`;
+const F_PG = `["<b>Formulário</b><br/>Cód. Fornecedor · Tipo (lista) · Motivo (lista)<br/>Descrição · Ficha Viagem · CTe<br/>Região · Dados Pagamento"]`;
 
 const flows=[
- {id:"todos",title:"Visão consolidada",crumb:"Visão consolidada",area:"ALL",tag:"all",dot:"#94a3b8",
-  desc:"O processo inteiro num só mapa: da solicitação ao roteamento por área, passando por formulários, alçadas de aprovação e execução.",
-  stats:[["Áreas","3"],["Processos","6"],["Alçadas","até 2"]],
+ {id:"todos",group:"Panorama",title:"Visão consolidada",crumb:"Visão consolidada",area:"ALL",tag:"all",dot:"#94a3b8",
+  desc:"O caminho de cada solicitação: área, processo, alçadas de aprovação e execução. Formulários e reprovações estão no detalhe de cada processo.",
+  stats:[["Áreas","3"],["Processos","7"],["Alçadas","0 a 2"]],
   code:`flowchart LR
     START((Solicitação)):::start --> ROUTER{Área}:::gate
     ROUTER -->|CR| CR[Contas a Receber]:::area
     ROUTER -->|CP| CP[Contas a Pagar]:::area
     ROUTER -->|Fiscal| FISCAL[Fiscal]:::area
     CR --> ALT[Alteração Venc./Prazo]:::proc
-    CR --> DESC[Desconto / Crédito]:::proc
-    CR --> REEMB[Reembolso Viagem]:::proc
-    CR --> CANC[Cancelamento RPA]:::proc
-    CP --> SOLIC[Solicitação Pagto Complementar]:::proc
+    CR --> DESC[Desconto Comercial]:::proc
+    CR --> CRED[Crédito]:::proc
+    ALT --> AGR{Aprovação<br/>Gerente Regional}:::gate
+    DESC --> AGR
+    AGR --> AF1{Aprovação<br/>Financeiro}:::gate
+    AF1 --> U1[Usuário executa]:::ok
+    CRED -->|sem aprovação| U2[Usuário analisa<br/>e responde]:::ok
+    CP --> REEMB[Reembolso Viagem]:::proc
+    CP --> SOLIC[Pagto Complementar<br/>de Frete]:::proc
+    CP --> CANC[Cancelamento RPA]:::proc
+    REEMB --> AGI{Aprovação<br/>Gestor imediato}:::gate
+    AGI --> AF2{Aprovação<br/>Financeiro}:::gate
+    SOLIC --> AGS{Aprovação<br/>Gestor}:::gate
+    CANC --> AGRE{Aprovação<br/>Região}:::gate
+    AF2 --> U3[Usuário executa]:::ok
+    AGS --> U3
+    AGRE --> U3
     FISCAL --> NF[Envio NF<br/>em desenvolvimento]:::dev
-    ALT --> FA["<b>Formulário CR</b><br/>Título · Cliente · Motivo<br/>Justificativa · Regional"]:::form
-    DESC --> FA
-    REEMB --> FR["<b>Formulário Pagamento</b><br/>Fornecedor · Tipo · Motivo<br/>Ficha Viagem · CTE · Região"]:::form
-    CANC --> FR
-    SOLIC --> FR
-    FA --> AP1{Aprovação<br/>Gestor / Região}:::gate
-    AP1 -->|Aprovado| AP2{Aprovação<br/>Financeiro}:::gate
-    AP2 -->|Aprovado| USR1[Usuário executa]:::ok
-    FR --> AG{Aprovação<br/>Gestor}:::gate
-    AG -->|Aprovado| USR2[Usuário executa]:::ok
-    AP1 -->|Reprovado| REP((Reprovado)):::bad
-    AP2 -->|Reprovado| REP
-    AG -->|Reprovado| REP
     ${CLASS_DEFS}`},
 
- {id:"visao-geral",title:"Visão geral",crumb:"Visão geral",area:"",tag:"",dot:"#94a3b8",
+ {id:"visao-geral",group:"Panorama",title:"Visão geral",crumb:"Visão geral",area:"",tag:"",dot:"#94a3b8",
   desc:"Roteamento das solicitações entre as três áreas e seus processos.",
-  stats:[["Áreas","3"],["Processos","6"]],
+  stats:[["Áreas","3"],["Processos","7"]],
   code:`flowchart LR
     START((Solicitação)):::start --> ROUTER{Área}:::gate
     ROUTER -->|CR| CR[Contas a Receber]:::area
     ROUTER -->|CP| CP[Contas a Pagar]:::area
     ROUTER -->|Fiscal| FISCAL[Fiscal]:::area
     CR --> ALT[Alteração Venc./Prazo]:::proc
-    CR --> DESC[Desconto / Crédito]:::proc
-    CR --> REEMB[Reembolso Viagem]:::proc
-    CR --> CANC[Cancelamento RPA]:::proc
-    CP --> SOLIC[Solicitação Pagto Complementar]:::proc
+    CR --> DESC[Desconto Comercial]:::proc
+    CR --> CRED[Crédito]:::proc
+    CP --> REEMB[Reembolso Viagem]:::proc
+    CP --> SOLIC[Pagto Complementar de Frete]:::proc
+    CP --> CANC[Cancelamento RPA]:::proc
     FISCAL --> NF[Envio NF em desenvolvimento]:::dev
     ${CLASS_DEFS}`},
 
- {id:"alteracao",title:"Alteração de Vencimento / Prazo",crumb:"Alteração Venc./Prazo",area:"CR",tag:"cr",dot:"#0ea371",
-  desc:"Alteração da data de vencimento ou do prazo de um título, com dupla aprovação (Gestor/Região e Financeiro).",
-  stats:[["Campos","5"],["Alçadas","2"]],
+ {id:"alteracao",group:"Contas a Receber",title:"Alteração de Vencimento / Prazo",crumb:"Alteração Venc./Prazo",area:"CR",tag:"cr",dot:"#0ea371",
+  desc:"Dois caminhos: com faturamento (formulário completo) ou via cadastro (título + novo prazo, mesmo fluxo). Passa pelo Gerente Regional e pelo Financeiro; se reprovada, volta ao solicitante. Anotação: permitir mais de um título por solicitação.",
+  stats:[["Caminhos","2"],["Campos","6"],["Alçadas","2"]],
   code:`flowchart LR
-    START((Início)):::start --> TIPO[Alteração Venc./Prazo]:::proc
-    TIPO --> FORM${F_CR()}:::form
-    FORM --> AP1{Aprovação<br/>Gestor / Região}:::gate
+    START((Início)):::start --> TIPO{Tipo de<br/>alteração}:::gate
+    TIPO -->|Com faturamento| FORM["<b>Formulário</b><br/>Título · Cód. Cliente<br/>Motivo (pré-definido)<br/>Justificativa (texto)<br/>Nova data · Região"]:::form
+    TIPO -->|Cadastro| ITEM["<b>Item</b><br/>Título + Novo prazo<br/>(mesmo fluxo)"]:::form
+    FORM --> AP1{Aprovação<br/>Gerente Regional}:::gate
+    ITEM --> AP1
+    AP1 -->|Aprovado| AP2{Aprovação<br/>Financeiro}:::gate
+    AP2 -->|Aprovado| USR[Usuário executa]:::ok
+    USR --> FIM((Concluído)):::ok
+    AP1 -->|Reprovado| VOLTA[Volta ao<br/>solicitante]:::bad
+    AP2 -->|Reprovado| VOLTA
+    ${CLASS_DEFS}`},
+
+ {id:"desconto",group:"Contas a Receber",title:"Desconto Comercial",crumb:"Desconto Comercial",area:"CR",tag:"cr",dot:"#0ea371",
+  desc:"Desconto comercial sobre um título, informado em R$ ou em percentual. Dupla aprovação: Gerente e Financeiro.",
+  stats:[["Campos","7"],["Alçadas","2"]],
+  code:`flowchart LR
+    START((Início)):::start --> DESC[Desconto Comercial]:::proc
+    DESC --> FORM["<b>Formulário</b><br/>Título · Cód. Cliente<br/>Motivo · Justificativa<br/>Valor Desc. (R$) <b>ou</b> % Desc.<br/>Valor Original · Regional"]:::form
+    FORM --> AP1{Aprovação<br/>Gerente}:::gate
     AP1 -->|Aprovado| AP2{Aprovação<br/>Financeiro}:::gate
     AP1 -->|Reprovado| REP((Reprovado)):::bad
-    AP2 -->|Aprovado| USR[Usuário executa alteração]:::ok
+    AP2 -->|Aprovado| USR[Usuário executa]:::ok
     AP2 -->|Reprovado| REP
     USR --> FIM((Concluído)):::ok
     ${CLASS_DEFS}`},
 
- {id:"desconto",title:"Desconto / Crédito",crumb:"Desconto / Crédito",area:"CR",tag:"cr",dot:"#0ea371",
-  desc:"Concessão de desconto ou geração de crédito, com escolha entre valor em R$ ou percentual e dupla aprovação.",
-  stats:[["Campos","8"],["Alçadas","2"]],
+ {id:"credito",group:"Contas a Receber",title:"Crédito",crumb:"Crédito",area:"CR",tag:"cr",dot:"#0ea371",
+  desc:"Solicitação de crédito para o cliente. Não passa por alçada de aprovação: o usuário analisa e responde ao solicitante.",
+  stats:[["Campos","2"],["Alçadas","0"]],
   code:`flowchart LR
-    START((Início)):::start --> RAMO{Tipo}:::gate
-    RAMO -->|Desconto| DESC[Desconto]:::proc
-    RAMO -->|Crédito| CRED[Crédito]:::proc
-    DESC --> FORM${F_CR("<br/>Valor Desc. (R$) <b>ou</b> % Desc.<br/>Valor Original")}:::form
-    CRED --> FORM
-    FORM --> AP1{Aprovação<br/>Gestor / Região}:::gate
+    START((Início)):::start --> CRED[Crédito]:::proc
+    CRED --> FORM["<b>Formulário</b><br/>Cód. Cliente · Descrição"]:::form
+    FORM -->|sem aprovação| USR[Usuário analisa]:::ok
+    USR --> RESP[Resposta ao<br/>solicitante]:::ok
+    RESP --> FIM((Concluído)):::ok
+    ${CLASS_DEFS}`},
+
+ {id:"reembolso",group:"Contas a Pagar",title:"Reembolso Viagem",crumb:"Reembolso Viagem",area:"CP",tag:"cp",dot:"#2563eb",
+  desc:"Reembolso de despesas de viagem: dados da viagem, despesas lançadas uma a uma com comprovante e dados para pagamento. Aprovação do gestor imediato e do Financeiro.",
+  stats:[["Tipos de despesa","4"],["Alçadas","2"]],
+  code:`flowchart LR
+    START((Início)):::start --> REEMB[Reembolso Viagem]:::proc
+    REEMB --> VIAG["<b>Dados da viagem</b><br/>Data · Origem · Destino<br/>Motivo"]:::form
+    VIAG --> DESP["<b>Despesas</b><br/>uma a uma, com anexo<br/>do comprovante"]:::form
+    DESP --> T1["Refeição<br/>descrição · R$"]:::field
+    DESP --> T2["Hospedagem<br/>descrição · R$"]:::field
+    DESP --> T3[Passagem]:::field
+    DESP --> T4["Deslocamento<br/>Uber/Táxi ou Km"]:::field
+    T1 & T2 & T3 & T4 --> PG["<b>Dados de pagamento</b><br/>PIX · Conta corrente"]:::form
+    PG --> AP1{Aprovação<br/>Gestor imediato}:::gate
     AP1 -->|Aprovado| AP2{Aprovação<br/>Financeiro}:::gate
     AP1 -->|Reprovado| REP((Reprovado)):::bad
-    AP2 -->|Aprovado| USR[Usuário gera desconto]:::ok
+    AP2 -->|Aprovado| USR[Usuário]:::ok
     AP2 -->|Reprovado| REP
     USR --> FIM((Concluído)):::ok
-    FORM -->|variação| ITEM["Item / Título + Ano Fiscal"]:::proc
-    ITEM --> AX1{Aprovação 1}:::gate
-    AX1 -->|Aprovado| AX2{Aprovação 2}:::gate
     ${CLASS_DEFS}`},
 
- {id:"reembolso",title:"Reembolso Viagem",crumb:"Reembolso Viagem",area:"CR",tag:"cr",dot:"#0ea371",
-  desc:"Reembolso de despesas de viagem. Compartilha o formulário com Solicitação de Pagamento e Cancelamento RPA.",
+ {id:"solicitacao",group:"Contas a Pagar",title:"Pagamento Complementar de Frete",crumb:"Pagto Complementar",area:"CP",tag:"cp",dot:"#2563eb",
+  desc:"Solicitação de pagamento complementar de frete. Aprovação do gestor antes da execução.",
   stats:[["Campos","8"],["Alçadas","1"]],
   code:`flowchart LR
-    START((Início)):::start --> RAMO{Tipo de<br/>solicitação}:::gate
-    RAMO -->|Reembolso| REEMB[Reembolso Viagem]:::proc
-    RAMO -->|Solicitação Pagto| SOLIC[Solicitação Pagamento]:::proc
-    RAMO -->|Cancelamento RPA| CANC[Cancelamento RPA]:::proc
-    REEMB --> FORM${F_PG}:::form
-    SOLIC --> FORM
-    CANC --> FORM
-    FORM --> AG{Aprovação<br/>Gestor}:::gate
-    AG -->|Aprovado| VAL[Validação]:::proc
-    AG -->|Reprovado| REP((Reprovado)):::bad
-    VAL --> USR[Usuário]:::ok
-    USR --> FIM((Concluído)):::ok
-    ${CLASS_DEFS}`},
-
- {id:"solicitacao",title:"Solicitação de Pagamento Complementar",crumb:"Solic. Pagamento",area:"CP",tag:"cp",dot:"#2563eb",
-  desc:"Pagamento complementar (Contas a Pagar). Usa o mesmo formulário de Reembolso e Cancelamento RPA.",
-  stats:[["Campos","8"],["Alçadas","1"]],
-  code:`flowchart LR
-    START((Início)):::start --> SOLIC[Solicitação Pagto Complementar]:::proc
+    START((Início)):::start --> SOLIC[Solicitação de Pagamento<br/>complementar de frete]:::proc
     SOLIC --> FORM${F_PG}:::form
     FORM --> AG{Aprovação<br/>Gestor}:::gate
     AG -->|Aprovado| USR[Usuário]:::ok
@@ -332,19 +348,19 @@ const flows=[
     USR --> FIM((Concluído)):::ok
     ${CLASS_DEFS}`},
 
- {id:"cancelamento",title:"Cancelamento RPA",crumb:"Cancelamento RPA",area:"CR",tag:"cr",dot:"#0ea371",
-  desc:"Cancelamento de Recibo de Pagamento a Autônomo. Compartilha formulário e aprovação com Reembolso e Solicitação de Pagamento.",
-  stats:[["Campos","8"],["Alçadas","1"]],
+ {id:"cancelamento",group:"Contas a Pagar",title:"Cancelamento RPA",crumb:"Cancelamento RPA",area:"CP",tag:"cp",dot:"#2563eb",
+  desc:"Cancelamento de Recibo de Pagamento a Autônomo, com aprovação da região.",
+  stats:[["Campos","5"],["Alçadas","1"]],
   code:`flowchart LR
     START((Início)):::start --> CANC[Cancelamento RPA]:::proc
-    CANC --> FORM${F_PG}:::form
-    FORM --> AG{Aprovação<br/>Gestor}:::gate
+    CANC --> FORM["<b>Formulário</b><br/>Motivo · Descrição<br/>Ficha Viagem · CTe · Região"]:::form
+    FORM --> AG{Aprovação<br/>Região}:::gate
     AG -->|Aprovado| USR[Usuário]:::ok
     AG -->|Reprovado| REP((Reprovado)):::bad
     USR --> FIM((Concluído)):::ok
     ${CLASS_DEFS}`},
 
- {id:"envio-nf",title:"Envio NF",crumb:"Envio NF",area:"Fiscal",tag:"fiscal",dot:"#d97706",
+ {id:"envio-nf",group:"Fiscal",title:"Envio NF",crumb:"Envio NF",area:"Fiscal",tag:"fiscal",dot:"#d97706",
   desc:"Envio de Nota Fiscal pela área Fiscal. Processo em desenvolvimento, mapeamento preliminar.",
   stats:[["Status","Em dev."]],
   code:`flowchart LR
@@ -381,11 +397,9 @@ const statsEl=document.getElementById("stats");
 const diagramEl=document.getElementById("diagram"), canvas=document.getElementById("canvas");
 const viewport=document.getElementById("viewport"), zoomInd=document.getElementById("zoomInd");
 
-/* nav */
-const s1=document.createElement("div");s1.className="nav-sec";s1.textContent="Panorama";nav.appendChild(s1);
-addBtn(0);addBtn(1);
-const s2=document.createElement("div");s2.className="nav-sec";s2.textContent="Processos";nav.appendChild(s2);
-for(let i=2;i<flows.length;i++)addBtn(i);
+/* nav agrupado por área */
+let lastGroup=null;
+flows.forEach((f,i)=>{if(f.group!==lastGroup){const s=document.createElement("div");s.className="nav-sec";s.textContent=f.group;nav.appendChild(s);lastGroup=f.group;}addBtn(i);});
 function addBtn(i){const f=flows[i];const b=document.createElement("button");
   b.innerHTML=`<span class="dot" style="background:${f.dot}"></span><span>${f.title}</span>`+(f.tag?`<span class="tag ${f.tag}">${f.area}</span>`:"");
   b.dataset.idx=i;b.onclick=()=>select(i);nav.appendChild(b);}
@@ -455,7 +469,7 @@ function downloadPng(){const svg=canvas.querySelector("svg");if(!svg)return;
 
 /* detail */
 function hideDetail(){document.getElementById("detail").style.display="none";}
-function showDetail(label){const key=Object.keys(nodeInfo).find(k=>label.includes(k));
+function showDetail(label){const norm=s=>s.replace(/\s+/g,"").toLowerCase();const key=Object.keys(nodeInfo).find(k=>norm(label).includes(norm(k)));
   const info=key?nodeInfo[key]:["•","Etapa do fluxo."];
   document.getElementById("detailIco").textContent=info[0];
   document.getElementById("detailTitle").textContent=label;
@@ -477,7 +491,7 @@ async function select(i){current=i;const f=flows[i];
     const{svg}=await mermaid.render("mmd-"+(counter++),f.code);diagramEl.innerHTML=svg;
     const el=canvas.querySelector("svg");
     if(el) normalizeSvg(el);
-    canvas.querySelectorAll(".node").forEach(n=>n.addEventListener("click",ev=>{ev.stopPropagation();showDetail((n.textContent||"").trim());}));
+    canvas.querySelectorAll(".node").forEach(n=>n.addEventListener("click",ev=>{ev.stopPropagation();const lb=n.querySelector("foreignObject div");showDetail(((lb&&lb.innerText)||n.textContent||"").replace(/\s*\n\s*/g," ").trim());}));
     resetView();
   }catch(e){diagramEl.textContent="Erro: "+e.message;}}
 window.zoomBy=zoomBy;window.resetView=resetView;window.toggleFs=toggleFs;window.downloadSvg=downloadSvg;window.downloadPng=downloadPng;window.hideDetail=hideDetail;window.showWhole=showWhole;

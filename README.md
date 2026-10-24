@@ -15,15 +15,18 @@ formalizados em [Mermaid](https://mermaid.js.org/). Os diagramas renderizam dire
 
 ## Processos mapeados
 
-| Processo | Área | Status |
-|----------|------|--------|
-| [Visão geral / roteamento](fluxogramas/00-visao-geral.md) | — | — |
-| [Alteração de Vencimento / Prazo](fluxogramas/01-alteracao-vencimento.md) | CR | — |
-| [Desconto / Crédito](fluxogramas/02-desconto-credito.md) | CR | — |
-| [Reembolso Viagem](fluxogramas/03-reembolso-viagem.md) | CR | — |
-| [Solicitação de Pagamento Complementar](fluxogramas/04-solicitacao-pagamento.md) | CP | — |
-| [Cancelamento RPA](fluxogramas/05-cancelamento-rpa.md) | CR | — |
-| [Envio NF](fluxogramas/06-envio-nf.md) | Fiscal | Em desenvolvimento |
+| Processo | Área | Aprovações |
+|----------|------|------------|
+| [Visão geral](fluxogramas/00-visao-geral.md) | — | — |
+| [Alteração de Vencimento / Prazo](fluxogramas/01-alteracao-vencimento.md) | CR | Gerente Regional → Financeiro |
+| [Desconto Comercial](fluxogramas/02-desconto-credito.md) | CR | Gerente → Financeiro |
+| [Crédito](fluxogramas/07-credito.md) | CR | sem aprovação |
+| [Reembolso Viagem](fluxogramas/03-reembolso-viagem.md) | CP | Gestor imediato → Financeiro |
+| [Pagamento Complementar de Frete](fluxogramas/04-solicitacao-pagamento.md) | CP | Gestor |
+| [Cancelamento RPA](fluxogramas/05-cancelamento-rpa.md) | CP | Região |
+| [Envio NF](fluxogramas/06-envio-nf.md) | Fiscal | em desenvolvimento |
 
-> Os fluxogramas foram interpretados a partir de fotos de quadro branco. Alguns campos
+Dashboard: https://elofavoritos-glitch.github.io/fluxograma-financeiro-elo/dashboard/
+
+> Os fluxogramas foram interpretados a partir das fotos do quadro e das anotações do caderno. Alguns campos
 > podem precisar de ajuste fino — revise e me avise as correções.
