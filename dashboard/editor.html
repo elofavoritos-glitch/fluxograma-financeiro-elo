@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Editor · Fluxos Financeiros ELO</title>
+<link rel="preload" href="vendor/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Plus Jakarta Sans";src:url("vendor/plus-jakarta-sans.woff2") format("woff2");font-weight:200 800;font-display:swap}
+:root{
+  --bg:#eef1f6;--surface:#fff;--ink:#0d1b2e;--ink-2:#475670;--ink-3:#8492a8;
+  --line:#e2e8f1;--line-2:#d2dbe8;--navy:#0a1930;
+  --brand:#0e9b6b;--brand-ink:#08744f;--brand-soft:#e7f6ef;
+  --cr:#0e9b6b;--cp:#3a5bd9;--fi:#d47706;--bad:#d64545;--bad-soft:#fdeeee;
+  --shadow:0 1px 2px rgba(13,27,46,.05),0 8px 24px rgba(13,27,46,.07);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Plus Jakarta Sans",system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  -webkit-font-smoothing:antialiased;font-size:14px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--brand-ink)}
+.i{width:16px;height:16px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* topo */
+.top{display:flex;align-items:center;gap:12px;padding:12px 20px;background:var(--navy);color:#fff;flex:none}
+.top .logo{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-weight:800;font-size:11px;background:linear-gradient(140deg,#14b07c,#0b8a5f)}
+.top b{font-size:15px}.top small{color:#8aa0c2;font-size:12px}
+.top .sp{flex:1}
+.saved{font-size:12px;color:#8fd3b8;display:flex;align-items:center;gap:6px;opacity:0;transition:opacity .3s}
+.saved.show{opacity:1}
+.tb{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 13px;border-radius:9px;background:rgba(255,255,255,.1);color:#fff;font-weight:600;font-size:13px}
+.tb:hover{background:rgba(255,255,255,.18)}
+.tb.primary{background:var(--brand)}.tb.primary:hover{background:#10b07a}
+.tb.ghost{background:transparent;border:1px solid rgba(255,255,255,.22)}
+
+/* layout */
+.wrap{flex:1;display:grid;grid-template-columns:minmax(380px,46%) 1fr;min-height:0}
+.pane{overflow-y:auto;height:100%}
+.edit{background:var(--surface);border-right:1px solid var(--line-2);padding:18px 20px 80px}
+.preview{background:var(--bg);padding:0}
+.pane::-webkit-scrollbar{width:9px}.pane::-webkit-scrollbar-thumb{background:#cdd6e4;border-radius:9px}
+
+/* lista de processos */
+.proc-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.ptab{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:9px;background:#f1f4f9;border:1.5px solid transparent;font-weight:600;font-size:13px;color:var(--ink-2)}
+.ptab:hover{background:#e7ecf4}
+.ptab.active{background:var(--brand-soft);border-color:var(--brand);color:var(--brand-ink)}
+.ptab .d{width:7px;height:7px;border-radius:50%}
+.ptab.add{color:var(--brand-ink);background:#fff;border:1.5px dashed var(--line-2)}
+
+/* formulário */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card>h3{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin-bottom:12px}
+.row{display:grid;gap:5px;margin-bottom:12px}
+.row.two{grid-template-columns:1fr 1fr;gap:10px}
+.row>label{font-size:12px;font-weight:700;color:var(--ink-2)}
+.ctrl{width:100%;padding:9px 11px;border:1.5px solid var(--line-2);border-radius:9px;background:#fff;font-size:13.5px}
+.ctrl:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+textarea.ctrl{resize:vertical;min-height:62px;line-height:1.45}
+
+/* etapas */
+.step-ed{border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.step-hd{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#f7f9fc;border-bottom:1px solid var(--line)}
+.step-hd .badge{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:800;background:var(--brand-soft);color:var(--brand-ink)}
+.step-hd b{font-size:13.5px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.step-bd{padding:12px}
+.mini{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:#eef2f7;color:var(--ink-2)}
+.mini:hover{background:#e0e7f0;color:var(--ink)}
+.mini.danger:hover{background:var(--bad-soft);color:var(--bad)}
+.mini:disabled{opacity:.35;cursor:default}
+
+/* grupos e campos */
+.group-ed{border:1px dashed var(--line-2);border-radius:10px;padding:10px;margin-bottom:10px;background:#fbfcfe}
+.chips{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.chip-ed{display:flex;align-items:center;gap:6px}
+.chip-ed input{flex:1}
+.addbtn{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:9px;background:var(--brand-soft);color:var(--brand-ink);font-weight:700;font-size:12.5px;margin-top:4px}
+.addbtn:hover{background:#d6f0e4}
+.addbtn.sub{background:#eef2f7;color:var(--ink-2)}.addbtn.sub:hover{background:#e2e8f1}
+.list-line{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.list-line input{flex:1}
+.danger-zone{display:flex;justify-content:flex-end;margin-top:4px}
+.del-proc{color:var(--bad);font-weight:700;font-size:12.5px;display:inline-flex;align-items:center;gap:6px}
+
+.hint{font-size:12px;color:var(--ink-3);margin-top:4px}
+#frameWrap{height:100%}
+iframe{width:100%;height:100%;border:0;display:block;background:var(--bg)}
+
+@media(max-width:820px){
+  .wrap{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+  .edit{border-right:0;border-bottom:1px solid var(--line-2)}
+}
+.modal-bg{position:fixed;inset:0;background:rgba(10,25,48,.5);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:16px;padding:22px;max-width:560px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+.modal h3{font-size:17px;margin-bottom:10px}
+.modal p{color:var(--ink-2);margin-bottom:12px;font-size:13.5px}
+.modal textarea{width:100%;min-height:160px;font-family:ui-monospace,monospace;font-size:12px}
+.modal .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.mbtn{padding:9px 15px;border-radius:9px;font-weight:600;font-size:13.5px;border:1px solid var(--line-2);background:#fff}
+.mbtn.primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="logo">ELO</span>
+  <div><b>Editor de Fluxos</b><br><small>As mudanças salvam no seu navegador</small></div>
+  <span class="sp"></span>
+  <span class="saved" id="saved"></span>
+  <a class="tb ghost" href="index.html" target="_blank">Abrir dashboard ↗</a>
+  <button class="tb ghost" data-act="import">Importar JSON</button>
+  <button class="tb ghost" data-act="export">Exportar JSON</button>
+  <button class="tb ghost" data-act="html">Baixar site</button>
+  <button class="tb ghost" data-act="reset">Restaurar</button>
+  <button class="tb primary" data-act="save">Salvar</button>
+</header>
+
+<div class="wrap">
+  <div class="pane edit" id="edit"></div>
+  <div class="pane preview"><div id="frameWrap"><iframe id="frame" title="Prévia"></iframe></div></div>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+
+<input type="file" id="fileIn" accept=".json,application/json" style="display:none">
+
+<script src="data.js"></script>
+<script>
+"use strict";
+const KEY="elo-fluxos";
+const ICON_LIST=["calendar","percent","banknote","plane","truck","filex","form","receipt","card","shield","user","send","reply","search","clock"];
+const TYPE_LIST=[["form","Formulário"],["approval","Aprovação"],["exec","Execução"],["return","Retorno"],["dev","Em definição"]];
+const AREA_CLS={CR:"#0e9b6b",CP:"#3a5bd9",FI:"#d47706"};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const uid=()=>"p"+Math.random().toString(36).slice(2,7);
+
+/* carrega dados: localStorage > data.js (cópia profunda) */
+function load(){
+  try{const s=localStorage.getItem(KEY); if(s) return JSON.parse(s);}catch(e){}
+  return JSON.parse(JSON.stringify(window.FLOW_DATA));
+}
+let DATA=load();
+let sel=0;
+
+/* ---------- construção do formulário ---------- */
+const svgIc='<svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
+const icUp='<svg class="i" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></svg>';
+const icDn='<svg class="i" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>';
+const icX='<svg class="i" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+function optList(list,val){return list.map(o=>{const[v,l]=Array.isArray(o)?o:[o,o];return `<option value="${esc(v)}"${v===val?" selected":""}>${esc(l)}</option>`}).join("")}
+
+function render(){
+  const tabs=DATA.processes.map((p,i)=>`<button class="ptab ${i===sel?"active":""}" data-sel="${i}"><span class="d" style="background:${AREA_CLS[p.area]||"#888"}"></span>${esc(p.short||p.title||"(sem nome)")}</button>`).join("")
+    +`<button class="ptab add" data-addproc>${svgIc}Novo processo</button>`;
+  const p=DATA.processes[sel];
+  let html=`<div class="proc-tabs">${tabs}</div>`;
+  if(!p){ $("#edit").innerHTML=html+`<p class="hint">Nenhum processo. Clique em "Novo processo".</p>`; bind(); return; }
+
+  html+=`<div class="card"><h3>Identificação</h3>
+    <div class="row"><label>Título</label><input class="ctrl" data-f="title" value="${esc(p.title)}"></div>
+    <div class="row two">
+      <div><label>Nome curto (menu)</label><input class="ctrl" data-f="short" value="${esc(p.short||"")}"></div>
+      <div><label>Área</label><select class="ctrl" data-f="area">${optList(DATA.areas.map(a=>[a.id,a.name]),p.area)}</select></div>
+    </div>
+    <div class="row two">
+      <div><label>Ícone</label><select class="ctrl" data-f="icon">${optList(ICON_LIST,p.icon)}</select></div>
+      <div><label>Nº de campos (opcional)</label><input class="ctrl" type="number" min="0" data-f="fields" value="${p.fields==null?"":p.fields}"></div>
+    </div>
+    <div class="row"><label>Resumo</label><textarea class="ctrl" data-f="summary">${esc(p.summary||"")}</textarea></div>
+    <div class="row"><label>Status (deixe vazio se ativo; ex.: "Em desenvolvimento")</label><input class="ctrl" data-f="status" value="${esc(p.status||"")}"></div>
+  </div>`;
+
+  html+=`<div class="card"><h3>Etapas do fluxo</h3>${(p.steps||[]).map((s,i)=>stepEd(s,i,p.steps.length)).join("")}
+    <button class="addbtn" data-addstep>${svgIc}Adicionar etapa</button></div>`;
+
+  html+=listCard("Regras do processo","rules",p.rules||[]);
+  html+=listCard("Pontos em aberto","open",p.open||[]);
+
+  html+=`<div class="card"><div class="danger-zone"><button class="del-proc" data-delproc>${icX}Excluir este processo</button></div></div>`;
+  $("#edit").innerHTML=html; bind();
+}
+
+function stepEd(s,i,total){
+  const groups=(s.groups||[]).map((g,gi)=>`
+    <div class="group-ed" data-g="${gi}">
+      <div class="list-line"><input class="ctrl" data-gf="label" placeholder="Nome do grupo (ex.: Campos)" value="${esc(g.label||"")}"><button class="mini danger" data-delgroup title="Remover grupo">${icX}</button></div>
+      <div class="chips">${(g.fields||[]).map((f,fi)=>`<div class="chip-ed"><input class="ctrl" data-field="${fi}" value="${esc(f)}"><button class="mini danger" data-delfield title="Remover campo">${icX}</button></div>`).join("")}</div>
+      <button class="addbtn sub" data-addfield>${svgIc}Campo</button>
+    </div>`).join("");
+  const showGroups=(s.type==="form");
+  return `<div class="step-ed" data-step="${i}">
+    <div class="step-hd"><span class="badge">${i+1}</span><b>${esc(s.title||"(etapa)")}</b>
+      <button class="mini" data-mv="-1" ${i===0?"disabled":""} title="Subir">${icUp}</button>
+      <button class="mini" data-mv="1" ${i===total-1?"disabled":""} title="Descer">${icDn}</button>
+      <button class="mini danger" data-delstep title="Remover etapa">${icX}</button>
+    </div>
+    <div class="step-bd">
+      <div class="row two">
+        <div><label>Tipo</label><select class="ctrl" data-sf="type">${optList(TYPE_LIST,s.type)}</select></div>
+        <div><label>Ícone (opcional)</label><select class="ctrl" data-sf="icon"><option value="">— padrão do tipo —</option>${optList(ICON_LIST,s.icon||"")}</select></div>
+      </div>
+      <div class="row two">
+        <div><label>Título</label><input class="ctrl" data-sf="title" value="${esc(s.title||"")}"></div>
+        <div><label>Subtítulo</label><input class="ctrl" data-sf="sub" value="${esc(s.sub||"")}"></div>
+      </div>
+      <div class="row"><label>Descrição</label><textarea class="ctrl" data-sf="desc">${esc(s.desc||"")}</textarea></div>
+      <div class="row two">
+        <div><label>Se recusado (só aprovação)</label><input class="ctrl" data-sf="reject" value="${esc(s.reject||"")}" placeholder="ex.: volta ao solicitante"></div>
+        <div><label>Marcar como concluído</label><select class="ctrl" data-sf="done">${optList([["","Não"],["1","Sim"]],s.done?"1":"")}</select></div>
+      </div>
+      ${showGroups?`<div class="row"><label>Grupos de campos</label>${groups||'<p class="hint">Sem grupos ainda.</p>'}<button class="addbtn sub" data-addgroup>${svgIc}Grupo de campos</button></div>`:""}
+    </div>
+  </div>`;
+}
+
+function listCard(title,key,arr){
+  return `<div class="card" data-list="${key}"><h3>${title}</h3>
+    ${arr.map((t,i)=>`<div class="list-line"><input class="ctrl" data-li="${i}" value="${esc(t)}"><button class="mini danger" data-delli title="Remover">${icX}</button></div>`).join("")}
+    <button class="addbtn sub" data-addli>${svgIc}Adicionar</button></div>`;
+}
+
+/* ---------- edição de dados ---------- */
+function P(){return DATA.processes[sel]}
+function touch(){persistLive();}
+function bind(){
+  const edit=$("#edit");
+  edit.querySelectorAll("[data-sel]").forEach(b=>b.onclick=()=>{sel=+b.dataset.sel;render();});
+  const addp=edit.querySelector("[data-addproc]"); if(addp) addp.onclick=addProc;
+  if(!P()) return;
+
+  // campos do processo
+  edit.querySelectorAll("[data-f]").forEach(el=>{
+    el.oninput=()=>{const k=el.dataset.f; let v=el.value;
+      if(k==="fields") v=v===""?null:(parseInt(v,10)||0);
+      P()[k]=v; if(k==="area"||k==="title"||k==="short"||k==="status"||k==="icon") renderTabsTitle(); touch();};
+  });
+  // etapas
+  edit.querySelectorAll(".step-ed").forEach(se=>{
+    const i=+se.dataset.step, st=P().steps[i];
+    se.querySelectorAll("[data-sf]").forEach(el=>el.oninput=()=>{
+      const k=el.dataset.sf, v=el.value;
+      if(k==="done"){ st.done = v==="1"; }
+      else if(k==="type"){ st.type=v; if(v!=="form") delete st.groups; else if(!st.groups) st.groups=[]; renderSoft(); }
+      else if(v==="") delete st[k]; else st[k]=v;
+      if(k==="title") se.querySelector(".step-hd b").textContent=v||"(etapa)";
+      touch();
+    });
+    se.querySelector("[data-delstep]").onclick=()=>{ if(P().steps.length<=1){alert("O processo precisa de ao menos 1 etapa.");return;} P().steps.splice(i,1); render(); };
+    se.querySelectorAll("[data-mv]").forEach(b=>b.onclick=()=>{const d=+b.dataset.mv,j=i+d; if(j<0||j>=P().steps.length)return; const a=P().steps; [a[i],a[j]]=[a[j],a[i]]; render();});
+    const ag=se.querySelector("[data-addgroup]"); if(ag) ag.onclick=()=>{ (st.groups=st.groups||[]).push({label:"Campos",fields:[""]}); render(); };
+    se.querySelectorAll(".group-ed").forEach(ge=>{
+      const gi=+ge.dataset.g, g=st.groups[gi];
+      ge.querySelector("[data-gf]").oninput=e=>{g.label=e.target.value;touch();};
+      ge.querySelector("[data-delgroup]").onclick=()=>{st.groups.splice(gi,1);if(!st.groups.length)delete st.groups;render();};
+      ge.querySelectorAll("[data-field]").forEach(inp=>inp.oninput=()=>{g.fields[+inp.dataset.field]=inp.value;touch();});
+      ge.querySelectorAll("[data-delfield]").forEach((b,bi)=>b.onclick=()=>{g.fields.splice(bi,1);render();});
+      ge.querySelector("[data-addfield]").onclick=()=>{g.fields.push("");render();};
+    });
+  });
+  const as=edit.querySelector("[data-addstep]"); if(as) as.onclick=()=>{P().steps.push({type:"form",title:"Nova etapa",sub:"",desc:"",groups:[{label:"Campos",fields:[""]}]});render();};
+  // listas (rules/open)
+  edit.querySelectorAll("[data-list]").forEach(c=>{
+    const key=c.dataset.list; const arr=P()[key]=P()[key]||[];
+    c.querySelectorAll("[data-li]").forEach(inp=>inp.oninput=()=>{arr[+inp.dataset.li]=inp.value;touch();});
+    c.querySelectorAll("[data-delli]").forEach((b,bi)=>b.onclick=()=>{arr.splice(bi,1);render();});
+    c.querySelector("[data-addli]").onclick=()=>{arr.push("");render();};
+  });
+  edit.querySelector("[data-delproc]").onclick=()=>{ if(confirm("Excluir o processo \""+(P().title)+"\"?")){ DATA.processes.splice(sel,1); sel=Math.max(0,sel-1); render(); } };
+}
+function renderTabsTitle(){ // atualiza as abas sem perder foco do campo
+  document.querySelectorAll(".ptab[data-sel]").forEach(b=>{const i=+b.dataset.sel;const p=DATA.processes[i];if(p){b.querySelector(".d").style.background=AREA_CLS[p.area]||"#888";b.childNodes[1]&&(b.lastChild.textContent=p.short||p.title||"(sem nome)");}});
+}
+let softTimer=null;
+function renderSoft(){clearTimeout(softTimer);softTimer=setTimeout(render,0);}
+function addProc(){
+  DATA.processes.push({id:uid(),area:DATA.areas[0]?.id||"CR",icon:"form",title:"Novo processo",short:"Novo processo",fields:null,
+    summary:"",steps:[{type:"form",title:"Formulário",sub:"",desc:"",groups:[{label:"Campos",fields:[""]}]}],rules:[],open:[]});
+  sel=DATA.processes.length-1; render();
+}
+
+/* ---------- prévia ao vivo (iframe com a dashboard) ---------- */
+let frameReady=false;
+function persistLive(){
+  localStorage.setItem(KEY,JSON.stringify(DATA));
+  flash("salvo no navegador");
+  updatePreview();
+}
+let upTimer=null;
+function updatePreview(){clearTimeout(upTimer);upTimer=setTimeout(()=>{
+  const f=$("#frame");
+  try{ f.contentWindow.postMessage({type:"elo-data",data:DATA},"*"); }catch(e){ f.src=f.src; }
+},250);}
+function flash(msg){const s=$("#saved");s.innerHTML='✓ '+msg;s.classList.add("show");clearTimeout(flash._t);flash._t=setTimeout(()=>s.classList.remove("show"),1400);}
+
+/* ---------- ações da barra ---------- */
+function download(name,text,mime){const b=new Blob([text],{type:mime||"text/plain;charset=utf-8"});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;a.click();}
+function exportJSON(){download("fluxos-elo.json",JSON.stringify(DATA,null,2),"application/json");}
+function modal(html){$("#modal").innerHTML=html;$("#modalBg").classList.add("show");}
+function closeModal(){$("#modalBg").classList.remove("show");}
+async function downloadHTML(){
+  // baixa o index.html e embute os dados atuais em data.js dentro do próprio arquivo
+  flash("gerando site…");
+  const [idx,htmi,font]=await Promise.all([
+    fetch("index.html").then(r=>r.text()),
+    fetch("vendor/html-to-image.js").then(r=>r.text()),
+    fetch("vendor/plus-jakarta-sans.woff2").then(r=>r.arrayBuffer())
+  ]);
+  const b64=btoa(String.fromCharCode(...new Uint8Array(font)));
+  let out=idx
+    .replace('<link rel="preload" href="vendor/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>','')
+    .replace('src:url("vendor/plus-jakarta-sans.woff2") format("woff2")',`src:url("data:font/woff2;base64,${b64}") format("woff2")`)
+    .replace('<script src="vendor/html-to-image.js"><\/script>',`<script>${htmi}<\/script>`)
+    .replace('<script src="data.js"><\/script>',`<script>window.FLOW_DATA=${JSON.stringify(DATA)};<\/script>`)
+    .replace('<a href="editor.html" style="color:#8fd3b8;font-weight:600">✎ Editar fluxos</a><br><br>','');
+  download("fluxos-financeiros-elo.html",out,"text/html;charset=utf-8");
+}
+function importJSON(){ $("#fileIn").click(); }
+$("#fileIn").onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!d.processes||!d.areas)throw 0;DATA=d;sel=0;persistLive();render();flash("JSON importado");}catch(err){alert("JSON inválido.");}};rd.readAsText(f);e.target.value="";};
+
+document.querySelector(".top").addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act;
+  if(a==="save"){persistLive();flash("tudo salvo");}
+  else if(a==="export") exportJSON();
+  else if(a==="import") importJSON();
+  else if(a==="html") downloadHTML();
+  else if(a==="reset"){ if(confirm("Restaurar os dados originais? Isso descarta as suas edições salvas.")){ localStorage.removeItem(KEY); DATA=JSON.parse(JSON.stringify(window.FLOW_DATA)); sel=0; persistLive(); render(); } }
+});
+$("#modalBg").onclick=e=>{if(e.target===$("#modalBg"))closeModal();};
+
+/* inicia prévia */
+$("#frame").src="index.html";
+$("#frame").onload=()=>{frameReady=true;updatePreview();};
+window.addEventListener("beforeunload",()=>localStorage.setItem(KEY,JSON.stringify(DATA)));
+
+render();
+</script>
+</body>
+</html>
