@@ -207,7 +207,8 @@ const nodeInfo = {
   "Aprovação Gerente":["✅","Primeira alçada: gerente."],
   "Aprovação Gestor":["✅","Alçada única: gestor responsável."],
   "Aprovação Financeiro":["✅","Segunda alçada: validação final do Financeiro."],
-  "Volta ao solicitante":["↩️","Se reprovada em qualquer alçada, a solicitação volta para o solicitante."],
+  "Volta ao solicitante":["↩️","Se recusada em qualquer alçada, a solicitação volta para o solicitante."],
+  "Retorno ao cliente":["📨","Se aprovada, o retorno da alteração vai para o cliente."],
   "Reprovado":["⛔","Solicitação recusada em alguma alçada."],
   "Concluído":["🏁","Processo finalizado."],
   "Contas a Receber":["💰","Área CR: Alteração de Vencimento/Prazo, Desconto Comercial e Crédito."],
@@ -218,7 +219,7 @@ const nodeInfo = {
   "Despesas":["🧾","Lançadas uma a uma, cada uma com o comprovante anexado."],
   "Deslocamento":["🚕","Uber/Táxi ou quilometragem rodada."],
   "Dados de pagamento":["🏦","Conta para receber o reembolso: PIX ou conta corrente."],
-  "Item":["📄","Alteração via Cadastro: informa o título e o novo prazo. Segue o mesmo fluxo de aprovação."],
+  "Item":["📄","Alteração via Cadastro: um ou mais títulos e o novo prazo, na mesma solicitação. Segue o mesmo fluxo de aprovação."],
   "Usuário analisa":["👤","O Crédito não passa por alçada: o usuário analisa e responde."],
   "Resposta":["💬","Retorno ao solicitante."],
   "Formulário":["📝","Campos preenchidos pelo solicitante."],
@@ -276,19 +277,20 @@ const flows=[
     ${CLASS_DEFS}`},
 
  {id:"alteracao",group:"Contas a Receber",title:"Alteração de Vencimento / Prazo",crumb:"Alteração Venc./Prazo",area:"CR",tag:"cr",dot:"#0ea371",
-  desc:"Dois caminhos: com faturamento (formulário completo) ou via cadastro (título + novo prazo, mesmo fluxo). Passa pelo Gerente Regional e pelo Financeiro; se reprovada, volta ao solicitante. Anotação: permitir mais de um título por solicitação.",
-  stats:[["Caminhos","2"],["Campos","6"],["Alçadas","2"]],
+  desc:"Dois caminhos: com faturamento (formulário completo) ou via cadastro (títulos + novo prazo, mesmo fluxo). Aceita vários títulos na mesma solicitação. Passa pelo Gerente Regional e pelo Financeiro: se recusada, volta ao solicitante; se aprovada, o retorno vai para o cliente.",
+  stats:[["Caminhos","2"],["Títulos","1 ou mais"],["Alçadas","2"]],
   code:`flowchart LR
     START((Início)):::start --> TIPO{Tipo de<br/>alteração}:::gate
-    TIPO -->|Com faturamento| FORM["<b>Formulário</b><br/>Título · Cód. Cliente<br/>Motivo (pré-definido)<br/>Justificativa (texto)<br/>Nova data · Região"]:::form
-    TIPO -->|Cadastro| ITEM["<b>Item</b><br/>Título + Novo prazo<br/>(mesmo fluxo)"]:::form
+    TIPO -->|Com faturamento| FORM["<b>Formulário</b><br/>Títulos (1 ou mais) · Cód. Cliente<br/>Motivo (pré-definido)<br/>Justificativa (texto)<br/>Nova data · Região"]:::form
+    TIPO -->|Cadastro| ITEM["<b>Item</b><br/>Títulos (1 ou mais) + Novo prazo<br/>(mesmo fluxo)"]:::form
     FORM --> AP1{Aprovação<br/>Gerente Regional}:::gate
     ITEM --> AP1
     AP1 -->|Aprovado| AP2{Aprovação<br/>Financeiro}:::gate
     AP2 -->|Aprovado| USR[Usuário executa]:::ok
-    USR --> FIM((Concluído)):::ok
-    AP1 -->|Reprovado| VOLTA[Volta ao<br/>solicitante]:::bad
-    AP2 -->|Reprovado| VOLTA
+    USR --> CLI[Retorno ao<br/>cliente]:::ok
+    CLI --> FIM((Concluído)):::ok
+    AP1 -->|Recusado| VOLTA[Volta ao<br/>solicitante]:::bad
+    AP2 -->|Recusado| VOLTA
     ${CLASS_DEFS}`},
 
  {id:"desconto",group:"Contas a Receber",title:"Desconto Comercial",crumb:"Desconto Comercial",area:"CR",tag:"cr",dot:"#0ea371",
