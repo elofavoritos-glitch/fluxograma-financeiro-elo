@@ -137,7 +137,9 @@ h1{font-size:32px;line-height:1.15;font-weight:800;letter-spacing:-.025em;margin
 .step:hover{border-color:var(--k);box-shadow:var(--shadow);transform:translateY(-2px)}
 .step:focus-visible{outline:3px solid var(--kl);outline-offset:2px}
 .step.open{border-color:var(--k);box-shadow:0 0 0 4px var(--ks),var(--shadow)}
-.step-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.step{container-type:inline-size}
+.step-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 6px}
+@container (max-width:120px){.kind{font-size:9px;letter-spacing:.02em}.step .num{width:20px;height:20px;font-size:11px}}
 .num{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;background:var(--ks);color:var(--k);flex:none}
 .kind{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--k);text-align:right;white-space:nowrap}
 .step-ico{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:var(--ks);color:var(--k);margin-top:6px}
