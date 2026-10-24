@@ -144,13 +144,14 @@
     <div class="stats" id="stats"></div>
 
     <div class="toolbar">
-      <button class="tbtn" onclick="zoomBy(1.2)">＋ Ampliar</button>
-      <button class="tbtn" onclick="zoomBy(.8)">－ Reduzir</button>
-      <button class="tbtn" onclick="resetView()">⤢ Ajustar</button>
+      <button class="tbtn" onclick="zoomBy(1.2)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Ampliar</button>
+      <button class="tbtn" onclick="zoomBy(.8)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/></svg>Reduzir</button>
+      <button class="tbtn" onclick="resetView()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Ajustar</button>
+      <button class="tbtn" onclick="showWhole()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12h8M12 8v8"/></svg>Ver inteiro</button>
       <span class="grow"></span>
-      <button class="tbtn" onclick="toggleFs()">⛶ Tela cheia</button>
+      <button class="tbtn" onclick="toggleFs()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>Tela cheia</button>
       <button class="tbtn" onclick="downloadSvg()">SVG</button>
-      <button class="tbtn primary" onclick="downloadPng()">⬇ Baixar PNG</button>
+      <button class="tbtn primary" onclick="downloadPng()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>Baixar PNG</button>
     </div>
 
     <div class="warn-banner" id="warnBanner" style="display:none">
@@ -307,9 +308,9 @@ const flows=[
     AP2 -->|Aprovado| USR[Usuário gera desconto]:::ok
     AP2 -->|Reprovado| REP
     USR --> FIM((Concluído)):::ok
-    FORM -.-> ITEM["Item / Título + Ano Fiscal ❓"]:::warn
-    ITEM -.-> AX1["Aprovação 1 ❓"]:::warn
-    AX1 -.-> AX2["Aprovação 2 ❓"]:::warn
+    FORM -.-> ITEM["Item / Título + Ano Fiscal (a confirmar)"]:::warn
+    ITEM -.-> AX1["Aprovação 1 (a confirmar)"]:::warn
+    AX1 -.-> AX2["Aprovação 2 (a confirmar)"]:::warn
     ${CLASS_DEFS}`},
 
  {id:"reembolso",title:"Reembolso Viagem",crumb:"Reembolso Viagem",area:"CR",tag:"cr",dot:"#0ea371",warn:true,
@@ -332,7 +333,7 @@ const flows=[
     FORM --> F7[Região]:::field
     FORM --> F8[Dados Pagamento]:::field
     F1 & F2 & F3 & F4 & F5 & F6 & F7 & F8 --> AG{Aprovação Gestor}:::gate
-    AG -->|Aprovado| VAL["Validação ❓ (etapa a confirmar)"]:::warn
+    AG -->|Aprovado| VAL["Validação (a confirmar)"]:::warn
     AG -->|Reprovado| REP((Reprovado)):::bad
     VAL --> USR[Usuário]:::ok
     USR --> FIM((Concluído)):::ok
@@ -434,16 +435,23 @@ function apply(){
   zoomInd.textContent=Math.round(scale*100)+"%";
 }
 function zoomBy(f){scale=Math.min(3,Math.max(.2,scale*f));apply();}
-/* Ajustar = diagrama inteiro visível (largura E altura) */
+/* Ajustar = encaixa pela LARGURA com tamanho mínimo legível; a altura rola */
 function fitToView(){
   if(!natW)return;
   const pad=80;
-  const sw=(viewport.clientWidth-pad)/natW, sh=(viewport.clientHeight-pad)/natH;
-  scale=Math.min(1.2,sw,sh);
-  if(!isFinite(scale)||scale<=0)scale=1;
-  scale=Math.max(.2,scale);
+  let s=(viewport.clientWidth-pad)/natW;
+  if(!isFinite(s)||s<=0)s=1;
+  scale=Math.max(.7,Math.min(1.2,s));
   apply();
-  viewport.scrollTop=0;viewport.scrollLeft=0;
+  viewport.scrollTop=0;
+  viewport.scrollLeft=Math.max(0,(viewport.scrollWidth-viewport.clientWidth)/2);
+}
+/* Ver inteiro = mapa completo na tela (bom para visão geral; texto fica menor) */
+function showWhole(){
+  if(!natW)return;
+  const pad=80;
+  scale=Math.max(.15,Math.min(1.2,(viewport.clientWidth-pad)/natW,(viewport.clientHeight-pad)/natH));
+  apply();viewport.scrollTop=0;viewport.scrollLeft=0;
 }
 function resetView(){fitToView();}
 /* recalcula o viewBox a partir do desenho real + margem: garante que nenhum nó seja cortado */
@@ -503,7 +511,7 @@ async function select(i){current=i;const f=flows[i];
     canvas.querySelectorAll(".node").forEach(n=>n.addEventListener("click",ev=>{ev.stopPropagation();showDetail((n.textContent||"").trim());}));
     fitToView();
   }catch(e){diagramEl.textContent="Erro: "+e.message;}}
-window.zoomBy=zoomBy;window.resetView=resetView;window.toggleFs=toggleFs;window.downloadSvg=downloadSvg;window.downloadPng=downloadPng;window.hideDetail=hideDetail;
+window.zoomBy=zoomBy;window.resetView=resetView;window.toggleFs=toggleFs;window.downloadSvg=downloadSvg;window.downloadPng=downloadPng;window.hideDetail=hideDetail;window.showWhole=showWhole;
 window.addEventListener("resize",()=>setTimeout(fitToView,60));
 
 /* inicializa só depois que o Mermaid carregar (com fallback) */
