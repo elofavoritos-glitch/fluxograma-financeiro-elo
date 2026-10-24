@@ -78,7 +78,7 @@
   .tbtn.primary:hover{background:var(--brand-dark);color:#fff}
 
   /* canvas */
-  .stage{flex:1;margin:4px 40px 22px;position:relative}
+  .stage{flex:1;margin:4px 40px 22px;position:relative;min-height:560px}
   .diagram-card{background:
       radial-gradient(circle at 1px 1px,#dfe6f2 1px,transparent 0) 0 0/22px 22px,
       var(--card);
@@ -421,7 +421,7 @@ function showWhole(){
 function resetView(){
   if(!natW)return;const pad=80;
   const whole=Math.min(1.2,(viewport.clientWidth-pad)/natW,(viewport.clientHeight-pad)/natH);
-  if(whole>=.6){showWhole();}else{fitToView();}
+  if(whole>=.4){showWhole();}else{fitToView();}
 }
 /* recalcula o viewBox a partir do desenho real + margem: garante que nenhum nó seja cortado */
 function normalizeSvg(svg){
