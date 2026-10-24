@@ -26,7 +26,16 @@ formalizados em [Mermaid](https://mermaid.js.org/). Os diagramas renderizam dire
 | [Cancelamento RPA](fluxogramas/05-cancelamento-rpa.md) | CP | Região |
 | [Envio NF](fluxogramas/06-envio-nf.md) | Fiscal | em desenvolvimento |
 
-Dashboard: https://elofavoritos-glitch.github.io/fluxograma-financeiro-elo/dashboard/
+## Dashboard
+
+**https://elofavoritos-glitch.github.io/fluxograma-financeiro-elo/dashboard/**
+
+- Clique numa etapa para ver os campos e as regras. **Expandir tudo** abre todas.
+- **Apresentar** abre em tela cheia; as setas ← → trocam de processo.
+- **Baixar imagem** gera um PNG em alta resolução (3x), com todas as etapas abertas. **PDF** imprime o processo.
+
+![Visão geral](docs/preview/visao-geral.png)
+![Reembolso Viagem](docs/preview/reembolso-viagem.png)
 
 ## Dúvidas pendentes (rever depois)
 
